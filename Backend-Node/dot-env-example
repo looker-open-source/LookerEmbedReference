@@ -1,0 +1,25 @@
+# Env variables required by backend
+# These can be set in an .env file based on this sample or in the environment directly using export envir_var=value, etc. 
+
+
+PBL_PORT=3000
+
+LOOKERSDK_API_VERSION=4.0
+
+LOOKERSDK_BASE_URL=https://{INSTANCE}.looker.com:19999
+
+# LOOKERSDK_CLIENT_ID and LOOKERSDK_CLIENT_SECRET values are API Keys that can be found, or created, from the 
+# Looker menu:  *Admin -> Users -> Edit Users -> Edit API3 Keys
+# The keys are specific to an individual user.  
+# For more details, please see https://connect.looker.com/library/document/users?version=22.0#users_page
+
+LOOKERSDK_CLIENT_ID={API CLIENT ID}
+LOOKERSDK_CLIENT_SECRET={API SECRET}
+
+# LOOKERSDK_EMBED_SECRET is an instance-wide Embed Secret key that can be set from the Looker menu: Admin -> Platform -> Embed  
+# Here you can find [Embed Secret] and [Reset Secret]
+# NOTE!!! [Reset Secret] will expire other SSO links or otherwise block access to all processes using the previous Embed Secret.  
+# For more details, please see https://docs.looker.com/admin-options/platform/embed
+
+LOOKERSDK_EMBED_HOST={INSTANCE}.looker.com   # Note: do not include http/https 
+LOOKERSDK_EMBED_SECRET={EMBED-SECRET}

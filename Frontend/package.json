@@ -1,0 +1,44 @@
+{
+  "name": "frontend",
+  "version": "0.0.0",
+  "description": "Frontend for Data Application Reference Implementation",
+  "main": "index.js",
+  "author": "Looker Data Sciences, Inc",
+  "license": "MIT",
+  "dependencies": {
+    "@looker/components": "2.8.13",
+    "@looker/components-date": "3.0.2",
+    "@looker/embed-sdk": "1.6.1",
+    "@looker/filter-components": "^0.10.15",
+    "@looker/filter-expressions": "^0.8.14",
+    "@looker/icons": "^1.5.14",
+    "@looker/sdk": "21.20.0",
+    "@looker/sdk-rtl": "21.3.1",
+    "@looker/visualizations": "^0.2.7",
+    "@styled-icons/material-outlined": "^10.34.0",
+    "dotenv-webpack": "^5.1.0",
+    "lodash": "^4.17.21",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-is": "16.11",
+    "react-router-dom": "6.2.1",
+    "styled-components": "5.3.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.16.5",
+    "@babel/plugin-transform-runtime": "^7.16.5",
+    "@babel/preset-env": "^7.16.5",
+    "@babel/preset-react": "^7.16.5",
+    "babel-loader": "^8.2.3",
+    "css-loader": "6.5.1",
+    "style-loader": "3.3.1",
+    "webpack": "5.65.0",
+    "webpack-cli": "^4.9.1",
+    "webpack-dev-server": "^4.7.0"
+  },
+  "scripts": {
+    "build": "webpack --mode production",
+    "build-dev": "webpack --mode development",
+    "dev": "webpack-dev-server --hot --https"
+  }
+}

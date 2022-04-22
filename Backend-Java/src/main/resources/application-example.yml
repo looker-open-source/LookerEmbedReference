@@ -1,0 +1,72 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Rename this application-expample.yml to application.yml
+# Replace <> with appropriate values
+# Default server port
+server:
+  port: 3000
+
+# Client_id and secret may be created per user.
+# The values are API Keys that can be found 
+# or created, from the Looker menu:  *Admin -> Users -> Edit Users.*  
+# These are specific to an individual user.  
+# Please see [link](https://docs.looker.com/admin-options/settings/users#edit_api3_keys).
+
+client_id: <>
+client_secret: <>
+
+LOOKERSDK_API_VERSION: 4.0
+
+# The customer specific part of the Looker host name can be added to the following 3 properties.
+LOOKER_API_URL: https:// <> .looker.com/api/4.0
+LOOKERSDK_BASE_URL: https:// <> .looker.com:19999
+LOOKERSDK_EMBED_HOST: <> .looker.com
+
+# Instructions to create an embed secret are here:  https://docs.looker.com/admin-options/platform/embed#embed_secret
+LOOKERSDK_EMBED_SECRET: <>
+
+authenticatedUser:
+    user1:
+        # The external user ID should be a unique value from your system
+        external_user_id: 'user1'
+        first_name: 'Pat'
+        last_name: 'Embed'
+        session_length: 3600
+        force_logout_login: true
+        # The external_group_id is an arbitrary id, usually from an IdP
+        # A folder is created for each external_group_id, for embed users to share content
+        external_group_id: 'group1'
+        group_ids:
+        # For available permissions see: https://docs.looker.com/reference/embedding/sso-embed#permissions
+        permissions:
+            access_data, see_looks, see_user_dashboards, explore, save_content, embed_browse_spaces, see_lookml_dashboards, see_drill_overlay
+        # Models are mandatory; an emebd user can only see content and data using these models 
+        models: 'data_block_acs_bigquery'
+        user_attributes:
+            locale: 'en_US'
+
+#       Here is more detail on the permissions list above.
+#        access_data is necessary for every embed user.
+#        see_looks lets user view existing looks
+#        see_user_dashboards lets users view existing dashboards 
+#        explore lets users use the explore experience
+#        save_content lets users save content
+#        use it with 'explore' to allow the creation of new dashboards
+#        embed_broswe_spaces lets users navigate between folders to save content
+#        see_lookml_dashbaords lets users view existing 'LookML' dashboards
+#        LookML dashboards are created by developers and version controlled
+#        see_drill_overlay lets users drill into data
+#        Allows users to open the schedule modal, and send email to non-embed Looker users
+#        Allows embed users to schedule emails to themselves or other embed Looker users 
