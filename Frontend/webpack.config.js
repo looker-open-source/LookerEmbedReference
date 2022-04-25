@@ -14,7 +14,7 @@
 
 const path = require('path');
 const Dotenv = require('dotenv-webpack');
-const { dirname } = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 const BACKEND_LOCATION = path.join(__dirname, 'dist');
 
@@ -24,11 +24,15 @@ module.exports = {
     filename: 'pbl.bundle.js',
     path: BACKEND_LOCATION,
   },
+  entry: {
+    index: './src/index.js',
+  },
   devtool: 'inline-source-map',
   devServer: {
-    // contentBase: path.join(__dirname, 'dist'),
+    https: true,
+    hot: true,
     static: {
-      directory: path.join(__dirname, 'dist'),
+      directory: path.join(__dirname, 'src'),
     },
     port: process.env.PBL_DEV_PORT || 3001,
     proxy: {
@@ -61,6 +65,20 @@ module.exports = {
     ]
   },
   plugins: [
-    new Dotenv()
+    new Dotenv(),
+    new HtmlWebpackPlugin({
+      templateContent: `
+        <html>
+          <head>
+            <title>Looker Embedded Reference Implementation</title>
+          </head>
+          <body>
+            <div class="fullpage">
+              <div id="app" style="width: 100%; height: 100%"></div>
+            </div>
+          </body>
+        </html>
+      `
+    })
   ]
 };

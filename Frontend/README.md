@@ -1,9 +1,9 @@
 # Looker Embed Reference - Frontend 
 
  This application contains examples of embedding Looker.  It is a React application that uses the Looker [Embed SDK](https://docs.looker.com/reference/embed-sdk/embed-sdk-intro) and [Components](https://docs.looker.com/data-modeling/extension-framework/components). It requires running a backend application to handle API calls safely.  These applications are tightly coupled. There is a node and java version of the backend application.
- 
- * [Node Backend Repository](https://github.com/bytecodeio/LookerEmbeddedReference-Backend)
- * [Java Backend Repository](https://github.com/bytecodeio/LookerEmbeddedReference-Backend-java)
+
+ * [Node Backend Repository]( ../Backend-Node)
+ * [Java Backend Repository]( ../Backend-Java)
 
  This is intended to be an example application, and shows many different ways of embedding Looker in another site.  It demonstrates several similar ways to inclue a dashboard or visualization, and all of these techniques are valid.  The examples that this application uses come from a 'data block' provided by Looker, using a public data set.  
 
@@ -12,7 +12,7 @@
 Embedding Looker into a site can involve showing Looker content directly, and/or using the Looker API to interact with Looker.  An embedding website requires hosting, and usually requires a user login.  For companies who don't yet have non-public websites, consider the [Looker Extension Framework](https://cloud.google.com/blog/topics/developers-practitioners/building-looker-made-easier-extension-framework) instead of creating a new website.
 
 ### Basics
-The frontend server (from this repository) serves a static web site.  It relies on a backend server ([node](https://github.com/bytecodeio/LookerEmbeddedReference-Backend), or [java](https://github.com/bytecodeio/LookerEmbeddedReference-Backend-java)) to communicate securely with Looker.  To show Looker Dashboards or Looks, the frontend server requests a [Signed SSO URL](https://docs.looker.com/reference/embedding/sso-embed) from the backend server.  This URL is then added to an iframe on the site.  Inside the iframe, the dashbaord or Look is served directly from the Looker server. 
+The frontend server (from this repository) serves a static web site.  It relies on a backend server ([node]( ../Backend-Node) or [java]( ../Backend-Java) examples provided) to communicate securely with Looker.  To show Looker Dashboards or Looks, the frontend requests a [Signed SSO URL](https://docs.looker.com/reference/embedding/sso-embed) from the backend server.  This URL is then added to an iframe on the site.  Inside the iframe, the dashbaord or Look is served directly from the Looker server. 
 
 ### Details
 The frontend server will handle user authentication, navigation, and rendering everything except Looker content.  In most cases, the frontend uses an iframe (inline frame element) to set space aside for Looker content.  Within the iframe, Looker renders and controls the content.  To investigate where these pieces are defined in the code, investigate these files:
@@ -40,7 +40,11 @@ This application relies heavily on [Looker Components](https://developers.looker
 
 ## Looker Setup
 
-You need administartive access to a Looker instance to embed Looker.  By default, every Looker won't have the necessary dashboards to display the content featured in this application.  We can add a dashboard and data from a public Looker block.  If you already have a connection to Google BigQuery configured in your Looker instance, please skip to step 3 below. 
+You need administartive access to a Looker instance to embed Looker.
+
+This frontend example uses a pre-defined set of Looker dashboards and explores, made available through a public Looker block that can be added to your Looker instance.
+
+If you already have a connection to Google BigQuery configured in your Looker instance, please skip to step 3 below. 
 
 ### Install Looker Data Block
 1. Start a free trial of [GCP](https://console.cloud.google.com/getting-started)
@@ -71,57 +75,50 @@ In Looker, navigate to the Admin -> Platform -> Embed configuration page.  Add t
 Before using the frontend server, you'll need to install it.
 
 ## Prerequisites
-* [Install git](https://git-scm.com/downloads)
-* [Install node](https://nodejs.org/en/download/)
-* [Install npm](https://docs.npmjs.com/cli/v7/configuring-npm/install)
-* [Install yarn](https://classic.yarnpkg.com/lang/en/docs/install)
+<!-- * [Install git](https://git-scm.com/downloads) -->
+[node](https://nodejs.org/en/download/), [npm](https://docs.npmjs.com/cli/v7/configuring-npm/install), [yarn](https://classic.yarnpkg.com/lang/en/docs/install)
 
-* Clone or download a copy of this repository to your local machine:
-```
-git clone git@github.com:bytecodeio/LookerEmbeddedReference-Frontend.git
-```
-
-* Navigate (cd) to the directory on your system.
-* Install the dependencies with Yarn:
+## 1. Install dependencies
+From the root folder (./Frontend), run:
 ```
 yarn install
 ```
   
-## Environmental variables
+## 2. Configure environment variables
 
-These can be set in a .env file in the root project directory.  In production systems, they are often set in the environment directly using `export PBL_PORT=3001`, or similar OS-specific commands.
+
+These can be set in a .env file in the root project directory  (./Frontend). In production systems, they are often set in the environment directly using `export PBL_PORT=3001`, or similar OS-specific commands.
 
 ```
 PBL_PORT=3001  # Note different port from backend 
 API_HOST=http://localhost:3000
-LOOKER_HOST=https://bytecodeef.looker.com
-LOOKER_API_HOST=https://bytecodeef.looker.com:19999
+LOOKER_HOST=https://helloworld.looker.com
+LOOKER_API_HOST=https://helloworld.looker.com:19999
 LOOKERSDK_EMBED_HOST=https://example.looker.com   
 ```
-For most installations, the LOOKER_HOST will be the same as the LOOKERSDK_EMBED_HOST variable. The LOOKER_API_HOST is usually the same, but with port 19999.
 
-## Running Locally
+For most installations, the `LOOKER_HOST` will be the same as the `LOOKERSDK_EMBED_HOST` variable. The `LOOKER_API_HOST` is usually the same, but with port 19999.
 
-Local hosting is recommended for learning and development.
+<!-- ## Running Locally
 
-### Start the dev server
+Local hosting is recommended for learning and development. -->
+
+## 3. Start the dev server
 ```
 yarn dev 
 ```
 
-### Start the backend API server
+## 4. Start the backend API server
 
-Follow directions in the backend repository readme ([node](https://github.com/bytecodeio/LookerEmbeddedReference-Backend#installation-local), or [java](https://github.com/bytecodeio/LookerEmbeddedReference-Backend-Java/blob/main/README.md#installation-local)) to install, compile and run it.
+Follow directions in the backend repository examples provided ([node]( ../Backend-Node#installation-local) or [java]( ../Backend-Java/blob/main/README.md#installation-local))
 
-### Point a browser to:
-
-[http://localhost:3001/embed-dashboard](http://localhost:3001/embed-dashboard)  
-Change the port from 3001 if you set a different PBL_PORT
+## 5. Access frontend [http://localhost:3001/embed-dashboard](http://localhost:3001/embed-dashboard)  
+Change the port from 3001 if you set a different `PBL_PORT` environment variable
 
 ## Running in Google AppEngine
 
 Instead of running this locally, use Google AppEngine to run it in the cloud.
-Follow the directions in the backend repository README ([node](https://github.com/bytecodeio/LookerEmbeddedReference-Backend#google-appengine-installation-optional), or [java](https://github.com/bytecodeio/LookerEmbeddedReference-Backend-Java/blob/main/README.md#google-appengine-installation-optional))
+Follow the directions in the backend repository README ([node]( ../Backend-Node#google-appengine-installation-optional), or [java]( ../Backend-Java/blob/main/README.md#google-appengine-installation-optional))
 
 
 ### Other resources:

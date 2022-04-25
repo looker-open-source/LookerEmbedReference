@@ -36,9 +36,12 @@ There are two methods of running this application; locally or on [GCP AppEngine.
 Verify the version of Node on the host. Node version 16.14.2 LTS tested.  
 
 
-### *Environmental variables*
+### Environmental variables
 ---
-These can be set in an .env file ([example](https://github.com/bytecodeio/LookerEmbeddedReference-Backend/blob/main/dot-env-example)) or in the environment directly using export envir_var=value, etc. 
+
+These can be set in an .env file ([example](dot-env-example)) or in the environment directly in the terminal/command line using:  ```export envir_var=value```
+
+Note: .env file should be saved at the root: ./Backend-Node/.env
 
 ```
 PBL_PORT=3000
@@ -64,7 +67,7 @@ Here you can find *Embed Secret* and *Reset Secret*
 
 ### config.js  
 
-This file contains the configured user(s) and their attributes used with SSO embeding including:
+This file contains the configured user(s) and their attributes used with SSO embedding including:
   - external_group_id
   - group_ids
   - permissions
@@ -73,10 +76,16 @@ This file contains the configured user(s) and their attributes used with SSO emb
 
 More info regarding these settings and attributes can be found [here.](https://docs.looker.com/reference/embedding/sso-embed)
 
-### Start the Development | Production Server
+### Start the Server
 ---
+
+Dev mode:
 ```
-yarn dev  | yarn start 
+yarn dev  
+```
+Production mode:
+``` 
+yarn start
 ```
 
 ## Google AppEngine Installation (optional)  
