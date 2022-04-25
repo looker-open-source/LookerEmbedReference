@@ -22,6 +22,7 @@
     "react-dom": "^16.13.1",
     "react-is": "16.11",
     "react-router-dom": "6.2.1",
+    "react-syntax-highlighter": "^15.5.0",
     "styled-components": "5.3.3"
   },
   "devDependencies": {

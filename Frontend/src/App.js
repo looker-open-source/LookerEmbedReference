@@ -48,66 +48,77 @@ const routes = {
       text: "Embedded Dashboard",
       component: <EmbedDashboard />,
       path: "EmbedDashboard/EmbedDashboard.js",
+      codeFileName: 'EmbedDashboard'
     },
     {
       url: "/embed-dashboard-with-filters",
       text: "Embedded Dashboard With Filters",
       component: <EmbedDashboardWFilters />,
       path: "EmbedDashboardWFilters/EmbedDashboardWFilters.js",
+      codeFileName: 'EmbedDashboardWFilters'
     },
     {
       url: "/embed-explore",
       text: "Embedded Explore",
       component: <EmbedExplore />,
       path: "EmbedExplore/EmbedExplore.js",
+      codeFileName: 'EmbedExplore'
     },
     {
       url: "/embed-query",
       text: "Embedded Query",
       component: <EmbedQuery />,
       path: "EmbedQuery/EmbedQuery.js",
+      codeFileName: 'EmbedQuery'
     },
     {
       url: "/viz-component",
       text: "Visualization Component",
       component: <VizComponent />,
       path: "VizComponent/VizComponent.js",
+      codeFileName: 'VizComponent'
     },
     {
       url: "/viz-component-w-filter",
       text: "Visualization Component + Filter",
       component: <VizComponentWFilter />,
       path: "VizComponent/VizComponentWFilter.js",
+      codeFileName: 'VizComponentWFilter'
     },
     {
       url: "/dashboard-events",
       text: "JavaScript Events",
       component: <EmbedDashboardEvents />,
       path: "EmbedDashboardEvents/EmbedDashboardEvents.js",
+      codeFileName: 'EmbedDashboardEvents'
     },
     {
       url: "/multiple-embeds",
       text: "Multiple Embeds",
       component: <EmbedTwoIframes />,
       path: "EmbedTwoIframes/EmbedTwoIframes.js",
+      codeFileName: 'EmbedTwoIframes'
     },
     {
       url: "/dashboard-layout",
       text: "Dynamic Dashboard Layout",
       component: <EmbedDashboardLayout />,
       path: "EmbedDashboardLayout/EmbedDashboardLayout.js",
+      codeFileName: 'EmbedDashboardLayout'
     },
     {
       url: "/dashboard-download",
       text: "Dashboard Download",
       component: <EmbedDashboardDownload />,
       path: "EmbedDashboardDownload/EmbedDashboardDownload.js",
+      codeFileName: 'EmbedDashboardDownload'
     },
     {
       url: "/sso-url-tester",
       text: "SSO Embed URL Tester",
       component: <SSOUrlTester />,
       path: "SSOUrlTester/SSOUrlTester.js",
+      codeFileName: 'SSOUrlTester'
     },
     // Uncomment the code below to add an additional route to an embedded Look.
     // {
@@ -150,7 +161,7 @@ function App() {
                 <Route
                   path={e.url}
                   default
-                  element={<Container content={e.component} path={e.path} />}
+                  element={<Container content={e.component} path={e.codeFileName} />}
                   key={e.text}
                 />
               );

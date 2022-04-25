@@ -43,7 +43,12 @@ module.exports = {
   module: {
     rules: [
       {
+        resourceQuery: /raw/,
+        type: 'asset/source',
+      },
+      {
         test: /\.(js|jsx)$/,
+        resourceQuery: { not: [/raw/] },
         exclude: /node_modules/,
         use: {
           loader: "babel-loader",
@@ -61,7 +66,7 @@ module.exports = {
       {
         test: /\.css$/,
         use: ["style-loader", "css-loader"],
-      }
+      },
     ]
   },
   plugins: [
