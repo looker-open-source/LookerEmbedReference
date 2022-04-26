@@ -1,0 +1,9 @@
+runtime: nodejs16
+
+service: default
+
+network:  
+  forwarded_ports:  
+    - 8080
+
+entrypoint: "node ./bin/www"

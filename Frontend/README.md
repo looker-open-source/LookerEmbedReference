@@ -91,6 +91,7 @@ These can be set in a .env file in the root project directory  (./Frontend). In 
 
 ```
 PBL_PORT=3001  # Note different port from backend 
+PBL_DEV_PORT=80
 API_HOST=http://localhost:3000
 LOOKER_HOST=https://helloworld.looker.com
 LOOKER_API_HOST=https://helloworld.looker.com:19999
@@ -112,13 +113,14 @@ yarn dev
 
 Follow directions in the backend repository examples provided ([node]( ../Backend-Node#installation-local) or [java]( ../Backend-Java/blob/main/README.md#installation-local))
 
-## 5. Access frontend [http://localhost:3001/embed-dashboard](http://localhost:3001/embed-dashboard)  
+## 5. Access frontend [https://localhost:3001/embed-dashboard](https://localhost:3001/embed-dashboard)  
 Change the port from 3001 if you set a different `PBL_PORT` environment variable
 
-## Running in Google AppEngine
+
+# Running in Google AppEngine
 
 Instead of running this locally, use Google AppEngine to run it in the cloud.
-Follow the directions in the backend repository README ([node]( ../Backend-Node#google-appengine-installation-optional), or [java]( ../Backend-Java/blob/main/README.md#google-appengine-installation-optional))
+Follow the directions in the backend repository README ([node]( ../Backend-Node/README.md#google-appengine-installation-optional) or [java]( ../Backend-Java/blob/main/README.md#google-appengine-installation-optional))
 
 
 ### Other resources:

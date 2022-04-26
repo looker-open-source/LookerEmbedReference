@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-env: standard
 runtime: nodejs16
-service: backend
+service: frontend
 handlers:
-   - url: /*
-     secure: always
-     static_dir: dist
-   - url: /
-     static_files: dist/index.html
-     upload: dist/index.html
+    # Serve all static files with urls ending with a file extension
+    - url: /(.*\..+)$
+      static_files: dist/\1
+      upload: dist/(.*\..+)$
+      # catch all handler to index.html
+    - url: /.*
+      static_files: dist/index.html
+      upload: dist/index.html

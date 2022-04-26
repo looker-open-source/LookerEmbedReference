@@ -19,7 +19,7 @@ For more please see the documentation for the [Front End](https://github.com/byt
 ---
 There are two methods of running this application; locally or on [GCP AppEngine.](https://cloud.google.com/appengine) 
 
-* [Node.](https://nodejs.org)
+* [Node](https://nodejs.org)
 * [Yarn](https://yarnpkg.com) package manager.
 * A valid Looker API Key created from [User Admin.](https://docs.looker.com/admin-options/settings/users#api3_keys)
 
@@ -117,84 +117,14 @@ yarn start
     ---  
     <br>
 
-* Create a directory to contain both the front and back end components: 
 
-  ```
-   mkdir AppEngineExample 
-  ```
-
-* Create a sub-directory for the front end client: 
-
-  ```
-    mkdir client 
-  ```
-
-* Clone or copy the FrontEnd code ([repo](https://github.com/bytecodeio/LookerEmbeddedReference-Frontend)) into ./client using 
-  
-  ```
-  cd client 
-  git clone {repo-ink} .  (Note the dot to copy directly into the /client subdirector without creating another subdirectory)
-  ```
-
-* Working inside the /client directory we need to create the file *client.yaml* containing:
-
-  ```
-  runtime: nodejs16
-  service: default
-  handlers:
-      # Serve all static files with urls ending with a file extension
-      - url: /(.*\..+)$
-        static_files: dist/\1
-        upload: dist/(.*\..+)$
-        # catch all handler to index.html
-      - url: /.*
-        static_files: dist/index.html
-        upload: dist/index.html
-  ```
-
-We will need to modify the client .env file but will need an API url from the API deploy (covered below). For now we will deploy the client first to set it as the default service in App Engine:  
-
-* Deploy the client with:
-  
-  ```
-  gcloud app deploy client.yaml
-  ```
-  
-* Navigate back a directory and create a sub-directory for the back end component: 
-
-  ```
-    cd ..
-    mkdir api 
-  ```
-  
-* Clone or copy the BackEnd code into /api
-
-  ```
-  cd api
-  git clone {repo-link} . 
-  ```
-
-* Within the /api directory, we will need to create an **app.yaml** file containing:
-
-  ```
-  runtime: nodejs16
-
-  service: api
-
-  network:  
-    forwarded_ports:  
-      - 8080
-
-  entrypoint: "node ./bin/www"
-  ```
-
-* We will also need to modify the .env file and set:
+* In the .env file for `Backend-Node`, update `PBL_PORT` parameter:
 
   ```
   PBL_PORT=8080
   ```
 
-* Deploy to AppEngine:
+* Deploy Backend server to AppEngine:
 
   ```
 	gcloud app deploy app.yaml 
@@ -203,45 +133,29 @@ We will need to modify the client .env file but will need an API url from the AP
 * Note the target url. When deploy completes, test by pointing browser to: 
 
   ```
-	{target-url} /api/me
+	{target-url}/api/me
   ```
 
-* Now we will need to return and modify the **client** .env file with the {target-url} created for the API.
+* Now we will need to return and modify the **client** .env file (../Frontend/.env) with the {target-url} created for the API from the previous step.
 
-  ```
-    cd ../client
-  ```
 
   - Update: <b>API_HOST</b> to point to the target-url returned during the API Deploy above.
 
   - Update: <b>PBL_DEV_PORT</b> to 80  
 
-* Update the client again with: 
+* Before deploying the front-end client, you will need to first do a build:
+  ```
+  cd ../frontend
+  yarn build
+  ```
+
+* Once the build is complete, deploy the front-end app and a dispatch route pointing to the API endpoint:
+  ```
+  gcloud app deploy client.yaml dispatch.yaml
+  ```
+
+* You should now be able to access your app using the target url that is returned!
   
-  ```
-  gcloud app deploy client.yaml 
-  ```
-
-* At this point, from the Google Cloud Platform site, go to the AppEngine dashboard and select Services. 
-
-* You should see the two services  but we need to create a Dispatch Route pointing to the API endpoint. 
- 
-* We will need to create a file in /client named *dispatch.yaml* containing: 
-
-  ```
-  dispatch:
-    - url: '*/api/*'
-      service: api
-  ```
-
-
-* This will send all traffic on /api to service: api.
-
-* Deploy dispatch.yaml with: 
-
-  ```
-	gcloud app deploy dispatch.yaml
-  ```
 
 
 ## Additional resources: 
