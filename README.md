@@ -1,6 +1,5 @@
 ### Basics
-The frontend server (from this repository) serves a static web site.  It relies on a backend server ([node](https://github.com/bytecodeio/LookerEmbeddedReference-Backend), or [java](https://github.com/bytecodeio/LookerEmbeddedReference-Backend-java)) to communicate securely with Looker.  To show Looker Dashboards or Looks, the frontend server requests a [Signed SSO URL](https://docs.looker.com/reference/embedding/sso-embed) from the backend server.  This URL is then added to an iframe on the site.  Inside the iframe, the dashbaord or Look is served directly from the Looker server. 
-
+The frontend server (from this repository) serves a static web site.  It relies on a backend server ([node](./Backend-Node/README.md), or [java](./Backend-Java/README.md)) to communicate securely with Looker.  To show Looker Dashboards or Looks, the frontend server requests a [Signed SSO URL](https://docs.looker.com/reference/embedding/sso-embed) from the backend server.  This URL is then added to an iframe on the site.  Inside the iframe, the dashbaord or Look is served directly from the Looker server. 
 
 
 ## Contributing

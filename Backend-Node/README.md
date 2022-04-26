@@ -2,17 +2,16 @@
 
 # Embed Reference - Node Backend
 
-This application is the backend / server component supporting the [reference implementation library](https://github.com/bytecodeio/LookerEmbeddedReference-Frontend) of examples for building Embedded [Looker](https://www.looker.com) Solutions.  
+This application is the backend / server component supporting the [reference implementation library](../README.md) of examples for building Embedded [Looker](https://www.looker.com) Solutions.  
 
-This [Node](https://nodejs.org) application uses the [Looker API](https://docs.looker.com/reference/api-and-integration) to provide embed urls to the user-facing React [application.](https://github.com/bytecodeio/LookerEmbeddedReference-Frontend)
+This [Node](https://nodejs.org) application uses the [Looker API](https://docs.looker.com/reference/api-and-integration) to provide embed urls to the user-facing React [application](../Frontend/).
 
-There is a [Java backend example](https://github.com/bytecodeio/LookerEmbeddedReference-Backend-Java) of this application as well.
 
 ## About Embedding Looker
 ---
 Embedding Looker involves displaying and interacting with Looker content from an outside source, such as the users website or in a third party SAS solution from another vendor. This offers a way to seemlessly leverage the power of Looker to enhance a third party product and / or offer a secure method for an outside user to interact with the data provided. 
 
-For more please see the documentation for the [Front End](https://github.com/bytecodeio/LookerEmbeddedReference-Frontend#about-embedding-looker) component.
+For more please see the documentation for the [Front End](../Frontend/README.md#about-embedding-looker) component.
 
 
 ## Prerequisites
@@ -44,7 +43,7 @@ These can be set in an .env file ([example](dot-env-example)) or in the environm
 Note: .env file should be saved at the root: ./Backend-Node/.env
 
 ```
-PBL_PORT=3000
+PBL_BACKEND_PORT=3000
 LOOKERSDK_API_VERSION=4.0
 LOOKERSDK_BASE_URL=https://[INSTANCE].looker.com
 LOOKERSDK_CLIENT_ID=[CLIENT_ID]
@@ -118,10 +117,10 @@ yarn start
     <br>
 
 
-* In the .env file for `Backend-Node`, update `PBL_PORT` parameter:
+* In the .env file for `Backend-Node`, update `PBL_BACKEND_PORT` parameter:
 
   ```
-  PBL_PORT=8080
+  PBL_BACKEND_PORT=8080
   ```
 
 * Deploy Backend server to AppEngine:
@@ -141,7 +140,7 @@ yarn start
 
   - Update: <b>API_HOST</b> to point to the target-url returned during the API Deploy above.
 
-  - Update: <b>PBL_DEV_PORT</b> to 80  
+  - Update: <b>PBL_CLIENT_PORT</b> to 80  
 
 * Before deploying the front-end client, you will need to first do a build:
   ```

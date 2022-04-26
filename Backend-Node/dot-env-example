@@ -2,7 +2,7 @@
 # These can be set in an .env file based on this sample or in the environment directly using export envir_var=value, etc. 
 
 
-PBL_PORT=3000
+PBL_BACKEND_PORT=3000
 
 LOOKERSDK_API_VERSION=4.0
 

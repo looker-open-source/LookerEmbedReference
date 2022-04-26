@@ -2,17 +2,17 @@
 
 # Embed Reference - Java Backend
 
-This application is the backend / server component supporting the [reference implementation library](https://github.com/bytecodeio/LookerEmbeddedReference-Frontend) of examples for building Embedded [Looker](https://www.looker.com) Solutions.  
+This application is the backend / server component supporting the [reference implementation library](../Frontend) of examples for building Embedded [Looker](https://www.looker.com) Solutions.  
 
-This JavaScript application uses the [Looker API](https://docs.looker.com/reference/api-and-integration) to provide embed urls to the user-facing React [application.](https://github.com/bytecodeio/LookerEmbeddedReference-Frontend)
+This JavaScript application uses the [Looker API](https://docs.looker.com/reference/api-and-integration) to provide embed urls to the user-facing React [application](../Frontend).
 
-There is a [Node backend example](https://github.com/bytecodeio/LookerEmbeddedReference-Backend) of this application as well.
+There is a [Node backend example](../Backend-Node) of this application as well.
 
 ## About Embedding Looker
 ---
 Embedding Looker involves displaying and interacting with Looker content from an outside source, such as the users website or in a third party SAS solution from another vendor. This offers a way to seemlessly leverage the power of Looker to enhance a third party product and / or offer a secure method for an outside user to interact with the data provided. 
 
-For more please see the documentation for the [Front End](https://github.com/bytecodeio/LookerEmbeddedReference-Frontend#about-embedding-looker) component.
+For more please see the documentation for the [Front End](../Frontend/README.md#about-embedding-looker) component.
 
 ## Prerequisites
 ---
@@ -39,29 +39,6 @@ There are two methods of running this application; locally or on [GCP AppEngine.
    - `./mvnw spring-boot:run `
 6. The server should be up and running locally! It can be tested by navigating to `localhost:3000/api/me` (or whichever server port is set as an environmental variable in application.yml).
 
-## Additional resources:
-
----
-
-[Looker API & Embedded Ref ](https://docs.looker.com/reference/api-embedding-intro)
-=======
-
----
-
-1. Clone or download a copy of this template to your development machine.
-2. Navigate (cd) to the template directory on your system.
-3. Set the environmental variables
-
-   - This is set with the Property File **application.yml** located in **./main/resources**.
-     There is a sample file **application-example.yml** with instructions in the same location.
-     Instead of adding variables to the file, these variables may be set as environment variables.
-
-4. From the project directory (that contains the pom.xml file), set up a Maven Wrapper for the project
-   https://maven.apache.org/wrapper/
-   - `mvn -N wrapper:wrapper`
-5. Run the project
-   - `./mvnw spring-boot:run `
-6. The server should be up and running! It can be tested by navigating to `localhost:3000/api/me` (or whichever server port is set as an environmental variable in application.yml)
 
 ## Google AppEngine Installation (optional)
 
@@ -98,55 +75,6 @@ Google [AppEngine](https://cloud.google.com/appengine) offers a fully managed an
 
     <br>
 
-- Create a directory to contain both the front and back end components:
-
-  ```
-   mkdir AppEngineExample 
-  ```
-  
-* Create a sub-directory for the front end client: 
-
-  ```
-    mkdir client 
-  ```
-  
-  - Clone or copy the FrontEnd code ([repo](https://github.com/bytecodeio/LookerEmbeddedReference-Frontend)) into ./client using
-
-  ```
-  cd client
-  git clone {repo-link} .  (Note the dot to copy directly into the /client subdirectory without creating another subdirectory)
-  ```
-  
-- Working inside the /client directory we need to create the file _client.yaml_ containing:
-
-  ```
-  runtime: nodejs16
-  service: default
-  handlers:
-      # Serve all static files with urls ending with a file extension
-      - url: /(.*\..+)$
-        static_files: dist/\1
-        upload: dist/(.*\..+)$
-        # catch all handler to index.html
-      - url: /.*
-        static_files: dist/index.html
-        upload: dist/index.html
-  ```
-    
-* Navigate back a directory and create a sub-directory for the back end component: 
-
-  ```
-    cd ..
-    mkdir api 
-  ```
-
-- Clone or copy the Java BackEnd code into /api
-
-  ```
-  cd api
-  git clone {repo-link} .
-  ```
-
 - Update the `api/src/main/resources/application.yml` file, and create a Maven Wrapper for the project, the same way as described in the local installation instructions.
 
 - Install dependencies and create a new build to deploy to App Engine:
@@ -154,21 +82,6 @@ Google [AppEngine](https://cloud.google.com/appengine) offers a fully managed an
   ```
   yarn install
   yarn run build
-  ```
-
-- Deploy the client to App Engine as the default service with:
-
-  ```
-  gcloud app deploy client.yaml
-  ```
-
-- Create an **app.yaml** file in a new `api/src/main/appengine` directory. Add the following contents to the app.yaml file:
-
-  ```
-  runtime: java11
-  instance_class: F1
-
-  service: api
   ```
 
 - In `api/src/main/resources/application.yml` update the server port to 8080:
@@ -202,7 +115,7 @@ Google [AppEngine](https://cloud.google.com/appengine) offers a fully managed an
    </project>
   ```
 
-- From the `api` directory, deploy the Spring Boot application too App Engine as an API service:
+- From the root `Backend-Java` directory, deploy the Spring Boot application too App Engine as an API service:
 
   ```
   ./mvnw -DskipTests package appengine:deploy
@@ -211,40 +124,23 @@ Google [AppEngine](https://cloud.google.com/appengine) offers a fully managed an
 - Note the target url. When deploy completes, test by pointing browser to:
 
   ```
-  {target-url} /api/me
+  {target-url}/api/me
   ```
 
 - Now we will need to return and modify the **client** .env file with the {target-url} created for the API.
 
-  - Update: <b>API_HOST</b> to point to port 8080
+  - Update: <b>API_HOST</b> to point to the target-url returned during the API Deploy above
 
-  - Update: <b>PBL_DEV_PORT</b> to 80
+  - Update: <b>PBL_CLIENT_PORT</b> to 80
 
-- Update the client again with:
-
-  ```
-  gcloud app deploy client.yaml
-  ```
-
-- At this point, from the Google Cloud Platform site, go to the AppEngine dashboard and select Services.
-
-- You should see the two services but we need to create a Dispatch Route pointing to the API endpoint.
-
-- We will need to create a file in /client named _dispatch.yaml_ containing:
+- Upload the client code/service with:
 
   ```
-  dispatch:
-    - url: '*/api/*'
-      service: api
+  gcloud app deploy client.yaml dispatch.yaml
   ```
 
-- This will send all traffic on /api to service: api.
 
-- Deploy dispatch.yaml with:
 
-  ```
-  gcloud app deploy dispatch.yaml
-  ```
 
 ## Additional resources:
 

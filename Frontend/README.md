@@ -87,11 +87,10 @@ yarn install
 ## 2. Configure environment variables
 
 
-These can be set in a .env file in the root project directory  (./Frontend). In production systems, they are often set in the environment directly using `export PBL_PORT=3001`, or similar OS-specific commands.
+These can be set in a .env file in the root project directory  (./Frontend). In production systems, they are often set in the environment directly using `export PBL_CLIENT_PORT=3001`, or similar OS-specific commands.
 
 ```
-PBL_PORT=3001  # Note different port from backend 
-PBL_DEV_PORT=80
+PBL_CLIENT_PORT=3001  # Note different port from backend 
 API_HOST=http://localhost:3000
 LOOKER_HOST=https://helloworld.looker.com
 LOOKER_API_HOST=https://helloworld.looker.com:19999
@@ -114,7 +113,7 @@ yarn dev
 Follow directions in the backend repository examples provided ([node]( ../Backend-Node#installation-local) or [java]( ../Backend-Java/blob/main/README.md#installation-local))
 
 ## 5. Access frontend [https://localhost:3001/embed-dashboard](https://localhost:3001/embed-dashboard)  
-Change the port from 3001 if you set a different `PBL_PORT` environment variable
+Change the port from 3001 if you set a different `PBL_CLIENT_PORT` environment variable
 
 
 # Running in Google AppEngine

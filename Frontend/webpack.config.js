@@ -34,9 +34,9 @@ module.exports = {
     static: {
       directory: path.join(__dirname, 'src'),
     },
-    port: process.env.PBL_DEV_PORT || 3001,
+    port: process.env.PBL_CLIENT_PORT || 3001,
     proxy: {
-      '/api': ['http://localhost', process.env.PBL_PORT || '3000'].join(':')
+      '/api': ['http://localhost', process.env.PBL_BACKEND_PORT || '3000'].join(':')
     },
     historyApiFallback: true
   },
