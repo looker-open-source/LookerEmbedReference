@@ -25,7 +25,7 @@ The frontend server will handle user authentication, navigation, and rendering e
 * query embedding (*src/components/EmbedQuery*)
 * embedding multiple iframes (*src/components/EmbedTwoIframes*)
 * Implementing download button (src/components/EmbedDashboardDownload)
-filters outside of iFrame using Looker component library (src/components/DashboardExternalFilters)
+* Implementing filters outside of iFrame using Looker component library (src/components/EmbedDashboardWFilters)
 * Implementing schedule button outside of iframe (src/components/EmbedDashboardEvents)
 * Implementing start and Stop button outside of iframe (src/components/EmbedDashboardEvents)
 * Capturing callbacks on user interactions of embedded content  (src/components/EmbedDashboardEvents)

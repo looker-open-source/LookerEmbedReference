@@ -88,14 +88,16 @@ const EmbedDashboardWFilters = () => {
     LookerEmbedSDK.createDashboardWithId(
       "data_block_acs_bigquery::acs_census_overview"
     )
-      // adds the iframe to the DOM as a child of a specific element
+      // Adds the iframe to the DOM as a child of a specific element
       .appendTo(el)
-      // this line performs the call to the auth service to get the iframe's src='' url, places it in the iframe and the client performs the request to Looker
+      // Hides the filters in the embedded dashboard. Custom themes must be enabled on the Looker instance.
+      .withParams({_theme: "{\"show_filters_bar\":false}"})
+      // Performs the call to the auth service to get the iframe's src='' url, places it in the iframe and the client performs the request to Looker
       .build()
-      // this establishes event communication between the iframe and parent page
+      // Establishes event communication between the iframe and parent page
       .connect()
       .then(handleDashboardLoaded)
-      // catch various errors which can occur in the process (note: does not catch 404 on content)
+      // Catches various errors which can occur in the process (note: does not catch 404 on content)
       .catch((error) => {
         console.error("An unexpected error occurred", error);
       });
@@ -104,7 +106,7 @@ const EmbedDashboardWFilters = () => {
   return (
     <Space height="calc(100% - 45px)">
       <div className={"embed-dashboard-main"}>
-        <PageTitle text={"Embedded Dashboard With Filters"} />
+        <PageTitle text={"Embedded Dashboard With Filters*"} />
         <LoadingSpinner loading={loading} />
         <ComponentsProvider resources={i18nResources}>
           <Space m="u3" align="end" width="auto">
@@ -122,6 +124,7 @@ const EmbedDashboardWFilters = () => {
         </ComponentsProvider>
         {/* Step 0) we have a simple container, which performs a callback to our makeDashboard function */}
         <Dashboard ref={makeDashboard}></Dashboard>
+        *Custom themes must be enabled on your Looker instance to hide the embedded dashboard's filters
       </div>
     </Space>
   );
@@ -138,7 +141,7 @@ const Dashboard = styled.div`
 `;
 export default EmbedDashboardWFilters;
 
-// This utilizes the more custom implementation of Looker filter components described in the filter components documentation.
+// Utilizes the more custom implementation of Looker filter components described in the filter components documentation.
 // Refer to the Looker filter components documentation for more details:
 // https://github.com/looker-open-source/components/blob/HEAD/packages/filter-components/USAGE.md
 export const DashFilters = ({ filter, expression, onChange }) => {
