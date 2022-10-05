@@ -37,7 +37,7 @@ const EmbedDashboardLayout = () => {
 
   // Runs after the "dashboard:loaded" event to initialize the Dashboard Options
   const initializeDashboardOptions = (event) => {
-    setDashboardOptions(event.dashboard.options)
+    setDashboardOptions(event.dashboard.options);
     setOriginalLayout(
       event.dashboard.options.layouts[0].dashboard_layout_components
     );
