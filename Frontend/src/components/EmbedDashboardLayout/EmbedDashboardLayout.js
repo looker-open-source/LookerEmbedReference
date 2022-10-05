@@ -22,7 +22,7 @@ import {
 import { ButtonItem, ButtonToggle } from "@looker/components";
 
 // Additional js file that holds static values that will be used in this component
-import { newLayoutComponents, bluePallette, defaultPallette } from "./constant";
+import { newLayoutComponents, defaultVisConfigs, blueVisConfigs } from "./constant";
 import { PageTitle } from "../common/PageTitle";
 import { LoadingSpinner } from "../common/LoadingSpinner";
 
@@ -34,22 +34,13 @@ const EmbedDashboardLayout = () => {
   const [toggleSelection, setToggleSelection] = React.useState("Show Maps");
   const [toggleColorSelection, setToggleColorSelection] =
     React.useState("Default");
-  const [dashboardElements, setDashboardElements] = React.useState();
 
-  // Function that runs after the "dashboard:run:complete event that initializes the Dashboard Options
+  // Runs after the "dashboard:loaded" event to initialize the Dashboard Options
   const initializeDashboardOptions = (event) => {
-    // Checks if this is the initial dashboard load
-    if (!originalLayout) {
-      // Set original elements
-      setDashboardElements(event.dashboard.options.elements);
-      // Set original layout
-      setOriginalLayout(
-        event.dashboard.options.layouts[0].dashboard_layout_components
-      );
-      console.log(event.dashboard.options);
-    }
-    // Sets dashboard options for everytime the "dashboard:run:complete" event is triggered
-    setDashboardOptions(event.dashboard.options);
+    setDashboardOptions(event.dashboard.options)
+    setOriginalLayout(
+      event.dashboard.options.layouts[0].dashboard_layout_components
+    );
   };
 
   // Sets the dashboard state
@@ -58,52 +49,42 @@ const EmbedDashboardLayout = () => {
     setLoading(false);
   };
 
-  // Function that hides the elements that have map visualizations in the dashboard layout
+  // Hides all elements with map visualizations in the dashboard layout
   const hideMaps = () => {
     const newOptions = dashboardOptions;
+
     // Takes the list from the constant.js to update the options
     newOptions.layouts[0].dashboard_layout_components = newLayoutComponents;
+
     // Updates the dashboard options with the changes
     dashboard.setOptions(newOptions);
   };
 
-  // Function that shows the initial layout
+  // Resets the dashboard layout to original layout with map visualizations
   const showMaps = () => {
     const newOptions = dashboardOptions;
-    // Takes from the originalLayout state
+
+    // Set to the initial layout
     newOptions.layouts[0].dashboard_layout_components = originalLayout;
+
     // Updates the dashboard options with the changes
     dashboard.setOptions(newOptions);
   };
 
   const updateDashboardColors = (color) => {
     const newOptions = { ...dashboardOptions };
-    console.log("new options", newOptions);
-    if (color === "Blue") {
-      // Loops through the bluePallete variable and updates the vis_config for each element
-      bluePallette.forEach((b) => {
-        const keys = Object.keys(b.vis_config);
-        keys.forEach((k) => {
-          const value = b.vis_config[k];
-          newOptions.elements[b.id].vis_config[k] = value;
-        });
-      });
-      // Updates the dashboard options with the changes
-      dashboard.setOptions(newOptions);
-    } else if (color === "Default") {
-      // Loops through the defaultPallette variable and updates the vis_config for each element
-      defaultPallette.forEach((b) => {
-        const keys = Object.keys(b.vis_config);
-        keys.forEach((k) => {
-          const value = b.vis_config[k];
-          console.log(b.id);
-          newOptions.elements[b.id].vis_config[k] = value;
-        });
-      });
-      // Updates the dashboard options with the changes
-      dashboard.setOptions(newOptions);
+    const newVisConfigs = color === "Blue" ? blueVisConfigs : defaultVisConfigs;
+
+    // Update each element's vis_config fields with desired color 
+    for (const elementId in newVisConfigs) {
+      const newVisConfig = newVisConfigs[elementId];
+      Object.assign(newOptions.elements[elementId].vis_config, newVisConfig)
     }
-    // Update the controlled state for the color picker button toggle
+
+    // Updates the dashboard options with the changes
+    dashboard.setOptions(newOptions);
+
+    // Update color picker button toggle's state
     setToggleColorSelection(color);
   };
 
@@ -119,19 +100,21 @@ const EmbedDashboardLayout = () => {
       "data_block_acs_bigquery::acs_census_overview"
     )
 
-      // adds the iframe to the DOM as a child of a specific element
+      // Adds the iframe to the DOM as a child of a specific element
       .appendTo(el)
-      // this instructs the SDK to point to the /dashboards-next/ version
+      // Instructs the SDK to point to the /dashboards-next/ version
       .withNext()
-      // this is an event listener for when the dashboard is finished running
-      .on("dashboard:run:complete", initializeDashboardOptions)
-      // this line performs the call to the auth service to get the iframe's src='' url, places it in the iframe and the client performs the request to Looker
+      // Set event listener to store the dashboard's initial options when the dashboard loads
+      .on("dashboard:loaded", initializeDashboardOptions)
+      // Set an event listener to update our state with the dashboard's latest options when the dashboard finishes its queries
+      .on("dashboard:run:complete", event => setDashboardOptions(event.dashboard.options))
+      // Performs the call to the auth service to get the iframe's src='' url, places it in the iframe and the client performs the request to Looker
       .build()
-      // this establishes event communication between the iframe and parent page
+      // Establishes event communication between the iframe and parent page
       .connect()
-      // this line sets up the dashboard after the building is complete
+      // Sets up the dashboard after its built
       .then((x) => setupDashboard(x))
-      // catch various errors which can occur in the process (note: does not catch 404 on content)
+      // Catches various errors which can occur in the process (note: does not catch 404 on content)
       .catch((error) => {
         console.error("An unexpected error occurred", error);
       });

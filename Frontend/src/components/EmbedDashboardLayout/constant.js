@@ -103,192 +103,129 @@ export const newLayoutComponents = [
   },
 ];
 
-export const bluePallette = [
-  {
-    id: "9a25e5117861811d218574501b928d08",
-    vis_config: {
-      custom_color: "#4276BE",
-    },
+export const blueVisConfigs = {
+  "9a25e5117861811d218574501b928d08": { // Element Id
+      "custom_color": "#4276BE" // Vis config field
   },
-  {
-    id: "ebd76278739d31315c13830811819f8a",
-    vis_config: {
-      series_colors: {
-        "blockgroup.female_pop": "#0a1159",
-        "blockgroup.male_pop": "#4276BE",
-      },
-    },
+  "ebd76278739d31315c13830811819f8a": {
+      "series_colors": {
+          "blockgroup.female_pop": "#0a1159",
+          "blockgroup.male_pop": "#4276BE"
+      }
   },
-  {
-    id: "41364e74cdb03c2032cbc3b62920febf",
-    vis_config: {
-      series_colors: {
-        "blockgroup.white_pop": "#0a1159",
-        "blockgroup.hispanic_pop": "#4276BE",
-        "blockgroup.black_pop": "#5188bf",
-        "blockgroup.asian_pop": "#7bb2de",
-        "blockgroup.amerindian_pop": "#94c8eb",
-        "blockgroup.other_race_pop": "#b3e2f7",
-      },
-    },
+  "41364e74cdb03c2032cbc3b62920febf": {
+      "series_colors": {
+          "blockgroup.white_pop": "#0a1159",
+          "blockgroup.hispanic_pop": "#4276BE",
+          "blockgroup.black_pop": "#5188bf",
+          "blockgroup.asian_pop": "#7bb2de",
+          "blockgroup.amerindian_pop": "#94c8eb",
+          "blockgroup.other_race_pop": "#b3e2f7"
+      }
   },
-  {
-    id: "f6c7c27e725dde95253579346d066559",
-    vis_config: {
-      series_colors: {
-        "blockgroup.masters_degree": "#0a1159",
-        "blockgroup.bachelors_degree": "#4276BE",
-        "blockgroup.associates_degree": "#5188bf",
-        "blockgroup.one_year_more_college": "#7bb2de",
-        "blockgroup.less_one_year_college": "#94c8eb",
-        "blockgroup.high_school_diploma": "#b3e2f7",
-      },
-    },
+  "f6c7c27e725dde95253579346d066559": {
+      "series_colors": {
+          "blockgroup.masters_degree": "#0a1159",
+          "blockgroup.bachelors_degree": "#4276BE",
+          "blockgroup.associates_degree": "#5188bf",
+          "blockgroup.one_year_more_college": "#7bb2de",
+          "blockgroup.less_one_year_college": "#94c8eb",
+          "blockgroup.high_school_diploma": "#b3e2f7"
+      }
   },
-  {
-    id: "706a0bdd8337601d7b80280ee230776e",
-    vis_config: {
-      series_colors: {
-        "state.state_percent_income_spent_on_rent": "#0a1159",
-        "state.state_median_income": "#7bb2de",
-      },
-    },
+  "706a0bdd8337601d7b80280ee230776e": {
+      "series_colors": {
+          "state.state_percent_income_spent_on_rent": "#0a1159",
+          "state.state_median_income": "#7bb2de"
+      }
   },
-  {
-    id: "ab6f1f15fc742936f24af78decbd5455",
-    vis_config: {
-      series_colors: {
-        "state.state_median_income": "#0a1159",
-        "state.state_income_per_capita": "#5188bf",
-      },
-    },
+  "ab6f1f15fc742936f24af78decbd5455": {
+      "series_colors": {
+          "state.state_median_income": "#0a1159",
+          "state.state_income_per_capita": "#5188bf"
+      }
   },
-  {
-    id: "ba563b0321362ca45873a5b1ad9f3ef0",
-    vis_config: {
-      series_colors: {
-        "blockgroup.employed_pop": "#5188bf",
-        "blockgroup.unemployed_pop": "#0a1159",
-      },
-    },
+  "ba563b0321362ca45873a5b1ad9f3ef0": {
+      "series_colors": {
+          "blockgroup.employed_pop": "#5188bf",
+          "blockgroup.unemployed_pop": "#0a1159"
+      }
   },
-  {
-    id: "ab158b5edf21673cf2ce22f9f5fc33f0",
-    vis_config: {
-      map_value_colors: ["#0a1159", "#b3e2f7"],
-    },
+  "ab158b5edf21673cf2ce22f9f5fc33f0": {
+      "map_value_colors": [
+          "#0a1159",
+          "#b3e2f7"
+      ]
   },
-  {
-    id: "1e129b695870a7212f35b9c4eb2fe7c7",
-    vis_config: {
-      map_value_colors: ["#0a1159", "#b3e2f7"],
-    },
+  "1e129b695870a7212f35b9c4eb2fe7c7": {
+      "map_value_colors": [
+          "#0a1159",
+          "#b3e2f7"
+      ]
   },
-  {
-    id: "42e1631e732bd16c5f647511f986d6b6",
-    vis_config: {
-      map_value_colors: ["#0a1159", "#b3e2f7"],
-    },
+  "42e1631e732bd16c5f647511f986d6b6": {
+      "map_value_colors": [
+          "#0a1159",
+          "#b3e2f7"
+      ]
   },
-  {
-    id: "74385e207fdf4e7b12c9036719ac762b",
-    vis_config: {
-      map_value_colors: ["#0a1159", "#b3e2f7"],
-    },
+  "74385e207fdf4e7b12c9036719ac762b": {
+      "map_value_colors": [
+          "#0a1159",
+          "#b3e2f7"
+      ]
   },
-  {
-    id: "d3db31621cb046736c7a37ebd46fb312",
-    vis_config: {
-      map_value_colors: ["#0a1159", "#b3e2f7"],
-    },
-  },
-];
+  "d3db31621cb046736c7a37ebd46fb312": {
+      "map_value_colors": [
+          "#0a1159",
+          "#b3e2f7"
+      ]
+  }
+};
 
-export const defaultPallette = [
-  {
-    id: "ab158b5edf21673cf2ce22f9f5fc33f0",
-    vis_config: {
-      map_value_colors: [],
-    },
+export const defaultVisConfigs = {
+  "ab158b5edf21673cf2ce22f9f5fc33f0": {
+      "map_value_colors": []
   },
-  {
-    id: "9a25e5117861811d218574501b928d08",
-    vis_config: {
-      custom_color:""
-    },
+  "9a25e5117861811d218574501b928d08": {
+      "custom_color": ""
   },
-  {
-    id: "ebd76278739d31315c13830811819f8a",
-    vis_config: {
-      series_colors: {},
-    },
+  "ebd76278739d31315c13830811819f8a": {
+      "series_colors": {}
   },
-  {
-    id: "ab6f1f15fc742936f24af78decbd5455",
-    vis_config: {
-      series_colors: {
-        "state.state_median_income": "#E57947",
-      },
-    },
+  "ab6f1f15fc742936f24af78decbd5455": {
+      "series_colors": {
+          "state.state_median_income": "#E57947"
+      }
   },
-  {
-    id: "706a0bdd8337601d7b80280ee230776e",
-    vis_config: {
-      map_value_colors: [],
-    },
+  "706a0bdd8337601d7b80280ee230776e": {
+      "series_colors": {
+          "state.state_percent_income_spent_on_rent": "#E57947",
+          "state.state_median_income": "#B42F37"
+      }
   },
-  {
-    id: "41364e74cdb03c2032cbc3b62920febf",
-    vis_config: {
-      series_colors: {},
-    },
+  "41364e74cdb03c2032cbc3b62920febf": {
+      "series_colors": {}
   },
-  {
-    id: "f6c7c27e725dde95253579346d066559",
-    vis_config: {
-      series_colors: {},
-    },
+  "f6c7c27e725dde95253579346d066559": {
+      "series_colors": {}
   },
-  {
-    id: "ba563b0321362ca45873a5b1ad9f3ef0",
-    vis_config: {
-      series_colors: {
-        "blockgroup.employed_pop": "#FFD95F",
-        "blockgroup.unemployed_pop": "#E57947",
-      },
-    },
+  "ba563b0321362ca45873a5b1ad9f3ef0": {
+      "series_colors": {
+          "blockgroup.employed_pop": "#FFD95F",
+          "blockgroup.unemployed_pop": "#E57947"
+      }
   },
-  {
-    id: "d3db31621cb046736c7a37ebd46fb312",
-    vis_config: {
-      map_value_colors: [],
-    },
+  "d3db31621cb046736c7a37ebd46fb312": {
+      "map_value_colors": []
   },
-  {
-    id: "706a0bdd8337601d7b80280ee230776e",
-    vis_config: {
-      series_colors: {
-        "state.state_percent_income_spent_on_rent": "#E57947",
-        "state.state_median_income": "#B42F37",
-      },
-    },
+  "1e129b695870a7212f35b9c4eb2fe7c7": {
+      "map_value_colors": []
   },
-  {
-    id: "1e129b695870a7212f35b9c4eb2fe7c7",
-    vis_config: {
-      map_value_colors: [],
-    },
+  "42e1631e732bd16c5f647511f986d6b6": {
+      "map_value_colors": []
   },
-  {
-    id: "42e1631e732bd16c5f647511f986d6b6",
-    vis_config: {
-      map_value_colors: [],
-    },
-  },
-  {
-    id: "74385e207fdf4e7b12c9036719ac762b",
-    vis_config: {
-      map_value_colors: [],
-    },
-  },
-];
+  "74385e207fdf4e7b12c9036719ac762b": {
+      "map_value_colors": []
+  }
+}
