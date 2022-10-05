@@ -104,7 +104,7 @@ const EmbedDashboardLayout = () => {
       .appendTo(el)
       // Instructs the SDK to point to the /dashboards-next/ version
       .withNext()
-      // Set event listener to store the dashboard's initial options when the dashboard loads
+      // Set an event listener to store the dashboard's initial options when the dashboard loads
       .on("dashboard:loaded", initializeDashboardOptions)
       // Set an event listener to update our state with the dashboard's latest options when the dashboard finishes its queries
       .on("dashboard:run:complete", event => setDashboardOptions(event.dashboard.options))
@@ -112,7 +112,7 @@ const EmbedDashboardLayout = () => {
       .build()
       // Establishes event communication between the iframe and parent page
       .connect()
-      // Sets up the dashboard after its built
+      // Sets up the dashboard after it's built
       .then((x) => setupDashboard(x))
       // Catches various errors which can occur in the process (note: does not catch 404 on content)
       .catch((error) => {
