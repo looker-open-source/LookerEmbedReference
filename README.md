@@ -1,6 +1,6 @@
 # Looker Embed Reference 
 
- This repo containes contains examples of how to embed Looker into a web application. There are 3 components provided:
+ This repo contains contains examples of how to embed Looker into a web application. There are 3 components provided:
  
   * [Frontend]( ./Frontend/README.md) - A sample React application that uses the Looker [Embed SDK](https://docs.looker.com/reference/embed-sdk/embed-sdk-intro) and [Components](https://docs.looker.com/data-modeling/extension-framework/components)
 
