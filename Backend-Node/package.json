@@ -13,7 +13,7 @@
     "create-hmac": "^1.1.7",
     "debug": "~2.6.9",
     "dotenv": "^8.2.0",
-    "express": "~4.16.1",
+    "express": "~4.17.3",
     "morgan": "~1.9.1",
     "nodemon": "^2.0.4",
     "webpack": "^5.65.0"
