@@ -15,10 +15,17 @@
 var express = require("express");
 var config = require("../config");
 var router = express.Router();
+
 const { LookerNodeSDK } = require("@looker/sdk-node");
 const sdk = LookerNodeSDK.init40();
+const createSignedUrl = require("../auth/auth_utils");
 
-var createSignedUrl = require("../auth/auth_utils");
+const { GoogleAuth } = require('google-auth-library');
+const auth = new GoogleAuth()
+const AGENT_ID = process.env.CLOUD_AGENT_ID
+const PROJECT_ID = process.env.CLOUD_PROJECT_ID
+const LOOKER_CLIENT = process.env.LOOKERSDK_CLIENT_ID
+const LOOKER_SECRET = process.env.LOOKERSDK_CLIENT_SECRET
 
 /*****************************************
  * Authentication                        *
@@ -79,7 +86,7 @@ router.post("/sso-url", async (req, res) => {
 });
 
 /****************************************
- * Backend Data API calls               *
+ * Backend Looker Data API calls               *
  ****************************************/
 
 /**
@@ -122,5 +129,96 @@ router.get("/looks/:id", async (req, res, next) => {
     });
   res.send(newQueryResults);
 });
+
+/*************************************************
+ * Backend Conversational Analytics API calls    *
+ *************************************************/
+
+/**
+ * Create new conversation
+ */
+router.post("/conversations", async (req, res, next) => {
+  const url = `https://geminidataanalytics.googleapis.com/v1beta/projects/${PROJECT_ID}/locations/global/conversations`
+
+  try {
+    response = await auth.fetch(url, {
+      method: "POST",
+      body: JSON.stringify({
+        agents: [`projects/${PROJECT_ID}/locations/global/dataAgents/${AGENT_ID}`]
+      })
+    })
+
+    // Google auth library uses gaxio for fetching which will consume and parse the response body and set the result on `data`
+    const nameSplit = response.data.name.split("/")
+    const id = nameSplit[nameSplit.length - 1]
+
+    res.send(id)
+  } catch(e) {
+    next(e)
+  }
+});
+
+/**
+ * Get/list conversation's messages
+ */
+router.get("/messages/:id", async (req, res, next) => {
+  const url = `https://geminidataanalytics.googleapis.com/v1beta/projects/${PROJECT_ID}/locations/global/conversations/${req.params.id}/messages?pageSize=100`
+
+  try {
+    response = await auth.fetch(url)
+    // Google auth library uses gaxio for fetching which will consume and parse the response body and set the result on `data`
+    res.send(response.data)
+  } catch(e) {
+    next(e)
+  }
+});
+
+/**
+ * Send message and stream response
+ */
+router.post("/chat", async (req, res, next) => {
+  const url = `https://geminidataanalytics.googleapis.com/v1beta/projects/${PROJECT_ID}/locations/global:chat`
+  console.log("CONVERSATION ID:", req.body.conversationId)
+  try {
+    response = await auth.fetch(url, {
+      method: "POST",
+      responseType: "stream",
+      body: JSON.stringify({
+        parent: `projects/${PROJECT_ID}/locations/global`,
+        messages: [
+          {
+            userMessage: {
+              text: req.body.message
+            }
+          }
+        ],
+        conversationReference: {
+          conversation: `projects/${PROJECT_ID}/locations/global/conversations/${req.body.conversationId}`,
+          dataAgentContext: {
+            dataAgent: `projects/${PROJECT_ID}/locations/global/dataAgents/${AGENT_ID}`,
+            credentials: {
+              oauth: {
+                secret: {
+                  clientId: LOOKER_CLIENT,
+                  clientSecret: LOOKER_SECRET
+                }
+              }
+            }
+          }
+        }
+      })
+    })
+
+    for await (const chunk of response.body) {
+      res.write(chunk)
+    }
+
+    res.end()
+  } catch(e) {
+    next(e)
+  }
+});
+
+
 
 module.exports = router;
