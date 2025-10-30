@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import React from "react";
+import EmbedChat from "./components/EmbedChat/EmbedChat"
 import EmbedDashboard from "./components/EmbedDashboard/EmbedDashboard";
 import EmbedExplore from "./components/EmbedExplore/EmbedExplore";
 import VizComponent from "./components/VizComponent/VizComponent";
@@ -49,6 +50,13 @@ const routes = {
       component: <EmbedDashboard />,
       path: "EmbedDashboard/EmbedDashboard.js",
       codeFileName: 'EmbedDashboard'
+    },
+    {
+      url: "/embed-chat",
+      text: "Embedded Dashboard with Chat",
+      component: <EmbedChat/>,
+      path: "EmbedChat/EmbedChat.js",
+      codeFileName: 'EmbedChat'
     },
     {
       url: "/embed-dashboard-with-filters",
