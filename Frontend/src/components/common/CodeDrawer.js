@@ -16,6 +16,8 @@ import React, { ReactNode, useEffect } from 'react'
 import { Drawer, IconButton, close } from '@looker/components';
 import { Close } from '@styled-icons/material-outlined';
 
+
+import EmbedChat from '../EmbedChat/EmbedChat.js?raw';
 import EmbedDashboard from '../EmbedDashboard/EmbedDashboard.js?raw';
 import EmbedDashboardWFilters from '../EmbedDashboardWFilters/EmbedDashboardWFilters.js?raw';
 import EmbedExplore from '../EmbedExplore/EmbedExplore.js?raw';
@@ -33,6 +35,7 @@ import SyntaxHighlighter from 'react-syntax-highlighter';
 import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 
 const codeSnippets = {
+    EmbedChat,
     EmbedDashboard,
     EmbedDashboardWFilters,
     EmbedExplore,

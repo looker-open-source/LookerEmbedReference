@@ -18,38 +18,13 @@
 import React, { useCallback, useEffect } from "react";
 import styled from "styled-components";
 import { LookerEmbedSDK } from "@looker/embed-sdk";
-import { Space } from "@looker/components";
+import { Space, Button } from "@looker/components";
 import { PageTitle } from "../common/PageTitle";
 import { LoadingSpinner } from "../common/LoadingSpinner";
 import { Chat } from "./components/chat"
 
-const COOKIE_NAME = "conversation-id"
-
 const EmbedChat = () => {
-  const [loading, setLoading] = React.useState(true);
-  const [initialMessages, setInitialMessages] = React.useState([])
-
-  // // Load chat with conversation history
-  // useEffect(() => {
-  //   const init = async () => {
-  //     const idCookie = await cookieStore.get(COOKIE_NAME)
-  //     let conversationId = ""
-  //     if (idCookie === null || !idCookie.value){
-  //       response = await fetch("/api/conversations", {method: "POST"})
-  //       newId = await response.text()
-  //       cookieStore.set(COOKIE_NAME, newId)
-  //       conversationId = newId
-  //     } else {
-  //       conversationId = idCookie.value
-  //     }
-
-  //     const response = await fetch(`/api/messages/${conversationId}`)
-  //     const messages = await response.json()
-  //     setInitialMessages(messages)
-  //   }
-  //   init()
-  // }, [])
-
+  const [loading, setLoading] = React.useState(true)
   /*
    Step 1 Initialization of the EmbedSDK happens when the user first access the application
    See App.js for reference
@@ -86,7 +61,7 @@ const EmbedChat = () => {
   return (
     <Space height="calc(100% - 45px)">
       <div className={"embed-dashboard-main"}>
-        <PageTitle text={"Embedded Dashboard with Conversational Analytics Chat"} />
+        <PageTitle text={"Embedded Dashboard with Conversational Analytics Chat"}>test</PageTitle>
         <Space height="calc(100% - 32px)">
           <LoadingSpinner loading={loading} />
           {/* Step 0) we have a simple container, which performs a callback to our makeDashboard function */}
