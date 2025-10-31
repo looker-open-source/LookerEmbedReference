@@ -1,13 +1,18 @@
-import React, { useCallback } from "react"
+import React, { useEffect, useRef } from "react"
 import { Box } from "@looker/components"
 import { Message } from "./message"
 
 export const MessageList = ({messages = []}) => {
+  // useEffect and useRef to autoscroll to bottom of list 
+  // by scrolling to a dummy message at the end
+  const dummyEndMessageRef = useRef(null)
+  useEffect(() => {
+    dummyEndMessageRef.current.scrollIntoView({ behavior: "smooth" })
+  })
+
   const list = messages.map(m => 
-    // CA API Bug: No messageId for immediate prompt responses
-    // So we must set messageId ourselves for the session
     <Message
-      key={m.messageId ? m.messageId : crypto.randomUUID()}
+      key={m.timestamp}
       message={m}
     />
   )
@@ -18,6 +23,7 @@ export const MessageList = ({messages = []}) => {
       overflow="scroll"
     >
       {list}
+      <div ref={dummyEndMessageRef}/>
     </Box>
   )
 }

@@ -1,30 +1,103 @@
 import React, { useCallback } from "react"
-import {Box} from "@looker/components"
+import {Card, CardContent, Heading, Icon, Space} from "@looker/components"
 
-export const Message = (message) => {
-  return(
-    <Box
-      height="50px"
+const THINKING_FACE_EMOJI = String.fromCodePoint("0x1F914")
+const ROBOT_EMOJI = String.fromCodePoint("0x1F916")
+
+export const Message = ({ message }) => {
+  if (Object.hasOwn(message, "userMessage")) {
+    return <UserMessage userMessage={message.userMessage}/>
+  } else if (Object.hasOwn(message, "systemMessage")){
+    if (Object.hasOwn(message.systemMessage, "text")) {
+      return <TextMessage systemMessage={message.systemMessage}/>
+    } else if (Object.hasOwn(message.systemMessage, "error")) {
+      return <ErrorMessage systemMessage={message.systemMessage}/>
+    } else if (Object.hasOwn(message.systemMessage, "schema")) {
+      return <SchemaMessage systemMessage={message.systemMessage}/>
+    } else if (Object.hasOwn(message.systemMessage, "data")) {
+      return <DataMessage systemMessage={message.systemMessage}/>
+    } else if (Object.hasOwn(message.systemMessage, "chart")) {
+      return <ChartMessage systemMessage={message.systemMessage}/>
+    } 
+  } else {
+    return null
+  }
+}
+
+const MessageContainer = ({isUser=false, title, children}) => {
+  return (
+    <Card
+      raised
+      height="fit-content"
       width="100%"
-      overflow="hidden"
+      overflow="scroll"
     >
-      {JSON.stringify(message)}
-    </Box>
+      <CardContent>
+        <Heading 
+          fontSize="large"
+          text-align={isUser ? "left" : "right"}
+        >
+          {isUser ? THINKING_FACE_EMOJI : ROBOT_EMOJI}: {title}
+        </Heading>
+        {children}
+      </CardContent>
+    </Card>
   )
 }
 
-export const UserMessage = (message) => { 
+const UserMessage = ({ userMessage }) => {
+  return(
+    <MessageContainer 
+      isUser={true}
+      title={"Prompt"}
+    >
+      {userMessage.text}
+    </MessageContainer>
+  )
 }
 
-export const SchemaMessage = (message) => {
+const ErrorMessage = ({ systemMessage }) => {
+  return(
+    <MessageContainer 
+      title={"System error"}
+    >
+      System error: {systemMessage.text}
+    </MessageContainer>
+  )
+}
+
+const TextMessage = ({ systemMessage }) => {
+  return(
+    <MessageContainer 
+      title={"System text"}
+    >
+      System text: {systemMessage.text.parts.join()}
+    </MessageContainer>
+  )  
+}
+
+const SchemaMessage = ({ systemMessage }) => {
+  return(
+    <MessageContainer 
+      title={"System schema"}
+    >
+      
+    </MessageContainer>
+  )
+}
+
+const DataMessage = ({ systemMessage }) => {
+    <MessageContainer 
+      title={"System data"}
+    >
+    </MessageContainer>
 
 }
 
-export const DataMessage = (message) => {
-
-}
-
-export const ChartMessage = (message) => {
-
+const ChartMessage = ({ systemMessage }) => {
+    <MessageContainer 
+      title={"System chart"}
+    >
+    </MessageContainer>
 }
 
