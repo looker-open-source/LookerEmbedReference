@@ -131,9 +131,15 @@ a.active > .nav-item {
 }
 
 .main-container {
-  width: calc(100% - 280px);
+  width: 100%;
   margin: 0;
   align-self: baseline;
+}
+
+.code-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
 }
 
 body {

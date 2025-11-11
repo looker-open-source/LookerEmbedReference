@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from "react"
-import { InputText, Button, Box } from "@looker/components"
-import styled from "styled-components"
+import { InputText, Button, Space, Spinner } from "@looker/components"
 
 export const ChatInput = ({onSubmit=() => {}, disabled=false}) => {
   const [inputValue, setInputValue] = useState("")
@@ -11,9 +10,10 @@ export const ChatInput = ({onSubmit=() => {}, disabled=false}) => {
   }
 
   return (
-    <Box
+    <Space
       height="40px"
       width="100%"
+      between
     >
       <InputText 
         disabled={disabled}
@@ -26,12 +26,16 @@ export const ChatInput = ({onSubmit=() => {}, disabled=false}) => {
       <Button
         width="20%"
         onClick={handleSubmit}
+        disabled={disabled}
       >
-        Submit
+        {disabled ? (
+          <Spinner color="white" />
+        ) : (
+          "Submit"
+        )}
       </Button>
-    </Box>
+    </Space>
   )
-
 }
 
 

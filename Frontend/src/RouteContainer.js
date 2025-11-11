@@ -25,11 +25,13 @@ export default function Container({ content, path }) {
   };
   return (
     <div className="main-container">
-      <CodePanel>
-        <Space>
-          <Button onClick={handleDrawer}>Code</Button>
-        </Space>
-      </CodePanel>
+      <div className="code-button">
+        <CodePanel>
+          <Space>
+            <Button onClick={handleDrawer}>Code</Button>
+          </Space>
+        </CodePanel>
+      </div>
       {content}
       <CodeDrawer
         content={content}
