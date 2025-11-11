@@ -73,7 +73,7 @@ const EmbedDashboard = () => {
 // A little bit of style here for heights and widths.
 const Dashboard = styled.div`
   width: 100%;
-  height: calc(100% - 30px);
+  height: 100%;
   & > iframe {
     width: 100%;
     height: 100%;

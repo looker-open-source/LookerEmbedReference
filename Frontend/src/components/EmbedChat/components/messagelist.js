@@ -12,15 +12,16 @@ export const MessageList = ({messages = []}) => {
 
   const list = messages.map(m => 
     <Message
-      key={m.timestamp}
+      key={m.timestamp.seconds + m.timestamp.nano}
       message={m}
     />
   )
   return(
     <Box
-      height="calc(100% - 40px)"
-      width="100%"
+      height="calc(100% - 85px)"
       overflow="scroll"
+      border="1px solid lightgray"
+      borderRadius="4px"
     >
       {list}
       <div ref={dummyEndMessageRef}/>

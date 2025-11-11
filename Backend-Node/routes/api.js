@@ -20,10 +20,33 @@ const { LookerNodeSDK } = require("@looker/sdk-node");
 const sdk = LookerNodeSDK.init40();
 const createSignedUrl = require("../auth/auth_utils");
 
-const { GoogleAuth } = require('google-auth-library');
-const auth = new GoogleAuth()
+const { DataChatServiceClient, DataAgentServiceClient } = require('@google-cloud/geminidataanalytics');
+const conversationalAnalyticsSDK = new DataChatServiceClient()
+const dataAgentSDK = new DataAgentServiceClient()
+// const test = {
+//   fields: {
+//     title: {
+//       stringValue: 'Total Population for Top 10 States',
+//       kind: 'stringValue',
+//     }
+//   }
+// }
+
+// def _convert(v):
+//   if isinstance(v, proto.marshal.collections.maps.MapComposite):
+//     return {k: _convert(v) for k, v in v.items()}
+//   elif isinstance(v, proto.marshal.collections.RepeatedComposite):
+//     return [_convert(el) for el in v]
+//   elif isinstance(v, (int, float, str, bool)):
+//     return v
+//   else:
+//     return MessageToDict(v)
+
+
+
 const AGENT_ID = process.env.CLOUD_AGENT_ID
 const PROJECT_ID = process.env.CLOUD_PROJECT_ID
+const PARENT_PATH = `projects/${PROJECT_ID}/locations/global`
 const LOOKER_CLIENT = process.env.LOOKERSDK_CLIENT_ID
 const LOOKER_SECRET = process.env.LOOKERSDK_CLIENT_SECRET
 
@@ -134,24 +157,74 @@ router.get("/looks/:id", async (req, res, next) => {
  * Backend Conversational Analytics API calls    *
  *************************************************/
 
+const SYSTEM_INSTRUCTION = `
+- system_instruction: When asked about 'filter on dimension state.state_name being', limit response to where dimension 'state.state_name' equals provided values. When asked about 'filter on dimension county.county_name being', limit response to where dimension 'county.county_name' equals provided values.  
+- glossaries:
+    - glossary:
+        - term: state.state_name
+        - description: Maps to the dimension 'state.state_name'.
+        - term: county.county_name
+        - description: Maps to the dimension 'county.county_name'.
+- additional_descriptions:
+    - text: This agent will filter response or results on the provided dimensions.`
+
+router.post("/patchagent", async (req, res, next) => {
+  try {
+    const response = await dataAgentSDK.updateDataAgent({
+      updateMask: {
+        paths: ["*"]
+      },
+      dataAgent: {
+        dataAnalyticsAgent: {
+          publishedContext: {
+            systemInstruction: SYSTEM_INSTRUCTION,
+            options: {
+              chart: {
+                image: {
+                  svg: {}
+                }
+              }
+            },
+            datasourceReferences: {
+              looker: {
+                exploreReferences: [
+                  {
+                    lookmlModel: "data_block_acs_bigquery",
+                    explore: "acs_census_data",
+                    lookerInstanceUri: "https://8720823d-b429-43af-8577-70195bad34e3.looker.app/"
+                  },
+                  {
+                    lookmlModel: "data_block_acs_bigquery",
+                    explore: "congressional_district",
+                    lookerInstanceUri: "https://8720823d-b429-43af-8577-70195bad34e3.looker.app/"
+                  }
+                ]
+              }
+            } 
+          }
+        },
+        name: `${PARENT_PATH}/dataAgents/${AGENT_ID}`,
+      },
+    })
+
+    res.send(response[0])
+  } catch(e) {
+    next(e)
+  }
+})
+
 /**
  * Create new conversation
  */
 router.post("/conversations", async (req, res, next) => {
-  const url = `https://geminidataanalytics.googleapis.com/v1beta/projects/${PROJECT_ID}/locations/global/conversations`
-
   try {
-    response = await auth.fetch(url, {
-      method: "POST",
-      body: JSON.stringify({
-        agents: [`projects/${PROJECT_ID}/locations/global/dataAgents/${AGENT_ID}`]
-      })
+    const response = await conversationalAnalyticsSDK.createConversation({
+      parent: PARENT_PATH,
+      conversation: { agents: [`${PARENT_PATH}/dataAgents/${AGENT_ID}`] }
     })
 
-    // Google auth library uses gaxio for fetching which will consume and parse the response body and set the result on `data`
-    const nameSplit = response.data.name.split("/")
+    const nameSplit = response[0].name.split("/")
     const id = nameSplit[nameSplit.length - 1]
-
     res.send(id)
   } catch(e) {
     next(e)
@@ -162,12 +235,13 @@ router.post("/conversations", async (req, res, next) => {
  * Get/list conversation's messages
  */
 router.get("/messages/:id", async (req, res, next) => {
-  const url = `https://geminidataanalytics.googleapis.com/v1beta/projects/${PROJECT_ID}/locations/global/conversations/${req.params.id}/messages?pageSize=100`
-
   try {
-    response = await auth.fetch(url)
-    // Google auth library uses gaxio for fetching which will consume and parse the response body and set the result on `data`
-    res.send(response.data)
+    const response = await conversationalAnalyticsSDK.listMessages({
+      parent: `${PARENT_PATH}/conversations/${req.params.id}`,
+      pageSize: 100,
+    })
+
+    res.send(response[0].map(storageMessage => storageMessage.message))
   } catch(e) {
     next(e)
   }
@@ -177,43 +251,32 @@ router.get("/messages/:id", async (req, res, next) => {
  * Send message and stream response
  */
 router.post("/chat", async (req, res, next) => {
-  const url = `https://geminidataanalytics.googleapis.com/v1beta/projects/${PROJECT_ID}/locations/global:chat`
-  console.log("CONVERSATION ID:", req.body.conversationId)
   try {
-    response = await auth.fetch(url, {
-      method: "POST",
-      responseType: "stream",
-      body: JSON.stringify({
-        parent: `projects/${PROJECT_ID}/locations/global`,
-        messages: [
-          {
-            userMessage: {
-              text: req.body.message
-            }
-          }
-        ],
-        conversationReference: {
-          conversation: `projects/${PROJECT_ID}/locations/global/conversations/${req.body.conversationId}`,
-          dataAgentContext: {
-            dataAgent: `projects/${PROJECT_ID}/locations/global/dataAgents/${AGENT_ID}`,
-            credentials: {
-              oauth: {
-                secret: {
-                  clientId: LOOKER_CLIENT,
-                  clientSecret: LOOKER_SECRET
-                }
+    stream = await conversationalAnalyticsSDK.chat({
+      parent: PARENT_PATH,
+      conversationReference: {
+        conversation: `${PARENT_PATH}/conversations/${req.body.conversationId}`,
+        dataAgentContext: {
+          dataAgent: `${PARENT_PATH}/dataAgents/${AGENT_ID}`,
+          credentials: {
+            oauth: {
+              secret: {
+                clientId: LOOKER_CLIENT,
+                clientSecret: LOOKER_SECRET
               }
             }
-          }
+          },
         }
-      })
+      },
+      messages: [{
+        userMessage: { text: req.body.message }
+      }],
     })
 
-    for await (const chunk of response.body) {
-      res.write(chunk)
-    }
 
-    res.end()
+    stream.on("data", message => res.write(JSON.stringify(message)))
+    stream.on("end", () => res.end())
+    stream.on("error", e => next(e))
   } catch(e) {
     next(e)
   }

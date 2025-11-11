@@ -26,9 +26,8 @@ function TopBanner({setMenuToggle,menuToggle}) {
         <>
             <Space className='top-banner' paddingLeft="20px">
                 <MenuButton setMenuToggle={setMenuToggle} menuToggle={menuToggle} />
-                <Image src="https://looker.com/assets/img/images/logos/looker.svg" alt="Looker" />
                 <Header>
-                    Embedded Reference Application
+                    Looker Embedded Reference Application
                 </Header>
             </Space>
         </>
