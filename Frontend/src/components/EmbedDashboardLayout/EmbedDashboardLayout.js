@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import React, { useCallback } from "react";
-import styled from "styled-components";
 //Alias an additional import of the embed sdk
 import {
   LookerEmbedSDK,

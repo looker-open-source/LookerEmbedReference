@@ -19,7 +19,6 @@
 //
 
 import React, { useCallback, useState } from "react";
-import styled from "styled-components";
 import { LookerEmbedSDK } from "@looker/embed-sdk";
 import { Space, Link, SpaceVertical } from "@looker/components";
 import { PageTitle } from "../common/PageTitle";

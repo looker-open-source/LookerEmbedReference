@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import React, { useCallback, useState }  from 'react'
-import styled from "styled-components"
 import { LookerEmbedSDK } from '@looker/embed-sdk'
 import { Box,CheckboxGroup } from '@looker/components'
 

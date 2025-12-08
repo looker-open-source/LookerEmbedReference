@@ -16,7 +16,6 @@
 // An embedded Query focuses on a single visualization, providing flexibility to build on a single tile of a dashboard.
 
 import React, { useCallback } from "react";
-import styled from "styled-components";
 import { LookerEmbedSDK } from "@looker/embed-sdk";
 import { Space } from "@looker/components";
 import { PageTitle } from "../common/PageTitle";
@@ -75,19 +74,10 @@ const EmbedQuery = () => {
         <PageTitle text={"Embedded Query"} />
         <LoadingSpinner loading={loading} />
         {/* Step 0 we have a simple container, which performs a callback to our showVisualization function */}
-        <Query ref={showVisualization}></Query>
+        <div className="query-container" ref={showVisualization}></div>
       </div>
     </Space>
   );
 };
 
-// A little bit of style here for heights and widths.
-const Query = styled.div`
-  width: 100%;
-  height: calc(100% - 30px);
-  & > iframe {
-    width: 100%;
-    height: 100%;
-  }
-`;
 export default EmbedQuery;

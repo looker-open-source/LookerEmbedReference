@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import React, { useCallback }  from 'react'
-import styled from "styled-components"
 //Alias an additional import of the embed sdk
 import { LookerEmbedSDK, LookerEmbedSDK as LookerEmbedSDK2 } from '@looker/embed-sdk'
 
@@ -69,18 +68,10 @@ const makeDashboard2 = useCallback((el) => {
 }, [])
   return (
     <>
-          <Dashboard ref={makeDashboard}></Dashboard>
-          <Dashboard ref={makeDashboard2}></Dashboard>
+    <div className="look-container" ref={makeDashboard}></div>
+    <div className="look-container" ref={makeDashboard2}></div>
     </>
   )
 }
-
-const Dashboard = styled.div`
-  width: 100%;
-  height: 95vh;
-  & > iframe {
-    width: 100%;
-    height: 100%;
-  }
-` 
+ 
 export default Embed
