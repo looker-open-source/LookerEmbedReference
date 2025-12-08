@@ -176,7 +176,6 @@ const EmbedDashboardEvents = () => {
           </Space>
           <LoadingSpinner loading={loading} />
           {/* Step 0) we have a simple container, which performs a callback to our makeDashboard function */}
-          <Dashboard ref={makeDashboard}></Dashboard>
           <div className="embed-dashboard-events" ref={makeDashboard}></div>
         </SpaceVertical>
       </div>
