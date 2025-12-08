@@ -115,7 +115,7 @@ const EmbedDashboardDownload = () => {
       <PageTitle text={"Dashboard Download"} />
       <Space>
         {/* Create a button that initializes the function that downloads the Dashboard */}
-        <Button onClick={handleDownload}>Download</Button>
+        <button className="embed-dashboard-common-button" onClick={handleDownload}>Download</button>
         {loadingDownload && (
           <>
             <Spinner />
@@ -125,35 +125,8 @@ const EmbedDashboardDownload = () => {
       </Space>
       <LoadingSpinner loading={loading} />
       {/* Step 0 - we have a simple container, which performs a callback to our makeDashboard function */}
-      <Dashboard ref={makeDashboard}></Dashboard>
-    </div>
+      <div className="embed-dashboard-download" ref={makeDashboard} /></div>
   );
 };
-
-const Dashboard = styled.div`
-  width: 100%;
-  height: calc(100% - 111px);
-  & > iframe {
-    width: 100%;
-    height: 100%;
-  }
-`;
-
-const Button = styled.button`
-  background: rgb(26, 115, 232);
-  border: 1px solid rgb(66, 133, 244);
-  padding: 0px 1.5rem;
-  -webkit-box-align: center;
-  align-items: center;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: 500;
-  -webkit-box-pack: center;
-  justify-content: center;
-  line-height: 1;
-  font-size: 0.875rem;
-  height: 36px;
-  color: white;
-`;
 
 export default EmbedDashboardDownload;

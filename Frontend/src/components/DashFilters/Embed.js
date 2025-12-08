@@ -96,18 +96,11 @@ const Status = [
             onChange={(e)=>{updateDashboardFilters(e)}}
               />
           </Box>
-          <Dashboard ref={makeDashboard} />
+          <div className="dash-filters-dashboard" ref={makeDashboard} />
+
           
     </>
   )
 }
 
-const Dashboard = styled.div`
-  width: 100%;
-  height: 95vh;
-  & > iframe {
-    width: 100%;
-    height: 100%;
-  }
-` 
 export default Embed

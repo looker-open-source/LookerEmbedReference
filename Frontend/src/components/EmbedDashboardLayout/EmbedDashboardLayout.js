@@ -124,63 +124,30 @@ const EmbedDashboardLayout = () => {
     <div height="calc(100% - 45px)">
       <PageTitle text={"Dashboard Layout"} />
       {/* Elements that contain the toggles for the Layouts and the vis_config color changes*/}
-      <ToggleArea>
+      <div className="embed-dashboard-layout-toggle-area">
         <ButtonToggle value={toggleSelection} onChange={setToggleSelection}>
           <ButtonItem onClick={showMaps}>Show Maps</ButtonItem>
           <ButtonItem onClick={hideMaps}>Hide Maps</ButtonItem>
         </ButtonToggle>
         <ButtonToggle
-          style={colorToggleStyle}
+          className="embed-dashboard-layout-color-toggle-style"
           value={toggleColorSelection}
           onChange={updateDashboardColors}
           nullable
         >
           <ButtonItem value="Default">
-            <GreenIcon />
+            <span className="embed-dashboard-layout-green-icon"/>
           </ButtonItem>
           <ButtonItem value="Blue">
-            <BlueIcon />
+            <span className="embed-dashboard-layout-blue-icon"/>
           </ButtonItem>
         </ButtonToggle>
-      </ToggleArea>
+      </div>
       <LoadingSpinner loading={loading} />
       {/* Step 0 - we have a simple container, which performs a callback to our makeDashboard function */}
-      <Dashboard ref={makeDashboard}></Dashboard>
+      <div className="embed-dashboard-layout-dashboard" ref={makeDashboard}></div>
     </div>
   );
 };
-
-const colorToggleStyle = {
-  marginLeft: "auto",
-  marginRight: "40px",
-};
-
-const ToggleArea = styled.div`
-  margin-top: 20px;
-  margin-left: 20px;
-  display: flex;
-`;
-
-const Dashboard = styled.div`
-  width: 100%;
-  height: calc(100% - 131px);
-  & > iframe {
-    width: 100%;
-    height: 100%;
-  }
-`;
-const BlueIcon = styled.span`
-  background-color: rgb(87, 128, 205);
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-`;
-
-const GreenIcon = styled.span`
-  background-color: #9bc779;
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-`;
 
 export default EmbedDashboardLayout;

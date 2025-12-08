@@ -154,67 +154,35 @@ const EmbedDashboardEvents = () => {
       <div className={"embed-dashboard-main"}>
         <SpaceVertical height="100%">
           <PageTitle text={"Embedded Dashboard with Javascript Events"} />
-          <DevMessage>
+          <div className="embed-dashboard-events-dev-message">
             View JavaScript events <em>from</em> the iframe logged in the{" "}
             <Link href="https://en.wikipedia.org/wiki/Web_development_tools">
               developer console.
             </Link>
-          </DevMessage>
+          </div>
+    
           <Space>
             {/* 
             These buttons use methods from https://looker-open-source.github.io/embed-sdk/classes/lookerembeddashboard.html 
             They allow interaction with the Dashboard from the parent page.
             */}
-            <DevMessage>
+             <div className="embed-dashboard-events-dev-message">
               Send JavaScript events <em>to</em> the iframe using these buttons:
-            </DevMessage>
-            <Button onClick={() => dashboardRef.run()}>Run</Button>
-            <Button onClick={() => dashboardRef.stop()}>Stop</Button>
-            <Button onClick={() => dashboardRef.openScheduleDialog()}>
+             </div>
+            <button className="embed-dashboard-common-button" onClick={() => dashboardRef.run()}>Run</button>
+            <button className="embed-dashboard-common-button" onClick={() => dashboardRef.stop()}>Stop</button>
+            <button className="embed-dashboard-common-button" onClick={() => dashboardRef.openScheduleDialog()}>
               Schedule
-            </Button>
+            </button>
           </Space>
           <LoadingSpinner loading={loading} />
           {/* Step 0) we have a simple container, which performs a callback to our makeDashboard function */}
           <Dashboard ref={makeDashboard}></Dashboard>
+          <div className="embed-dashboard-events" ref={makeDashboard}></div>
         </SpaceVertical>
       </div>
     </Space>
   );
 };
 
-// A little bit of style here for heights and widths.
-const Dashboard = styled.div`
-  width: 100%;
-  height: 70vh;
-  & > iframe {
-    width: 100%;
-    height: 100%;
-  }
-`;
-
-const DevMessage = styled.div`
-font-family: "Google Sans", "Open Sans", Arial, Helvetica, sans-serif;
-font-size: 20px;
-color: #5F6368;
-font-weight: 200;
-margin-left: 3rem;
-}
-`;
-const Button = styled.button`
-  background: rgb(26, 115, 232);
-  border: 1px solid rgb(66, 133, 244);
-  padding: 0px 1.5rem;
-  -webkit-box-align: center;
-  align-items: center;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: 500;
-  -webkit-box-pack: center;
-  justify-content: center;
-  line-height: 1;
-  font-size: 0.875rem;
-  height: 36px;
-  color: white;
-`;
 export default EmbedDashboardEvents;
