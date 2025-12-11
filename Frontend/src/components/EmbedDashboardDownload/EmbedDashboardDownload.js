@@ -115,8 +115,7 @@ const EmbedDashboardDownload = () => {
       <PageTitle text={"Dashboard Download"} />
       <Space>
         {/* Create a button that initializes the function that downloads the Dashboard */}
-        {/* <Button onClick={handleDownload}>Download</Button> */}
-        <button className="EmbedDashboardCommonButton" onClick={handleDownload}>Download</button>
+        <button className="embed-dashboard-common-button" onClick={handleDownload}>Download</button>
         {loadingDownload && (
           <>
             <Spinner />
@@ -126,7 +125,7 @@ const EmbedDashboardDownload = () => {
       </Space>
       <LoadingSpinner loading={loading} />
       {/* Step 0 - we have a simple container, which performs a callback to our makeDashboard function */}
-       <div className="EmbedDashboardDownload" ref={makeDashboard}></div>
+       <div className="embed-dashboard-download" ref={makeDashboard}></div>
       </div>
   );
 };
