@@ -348,7 +348,7 @@ body {
 
 .embed-dashboard-layout-color-toggle-style{
   margin-left: auto;
-  margin-right: "40px";
+  margin-right: 40px;
 }
 
 .embed-dashboard-layout-toggle-area{
@@ -463,7 +463,7 @@ body {
   font-size: 26px;
   color: #5F6368;
   font-weight: 200;
-  margin-bottom: -6px;
+  padding-top: 20px;
 }
 
 .embed-form-submit-button {
