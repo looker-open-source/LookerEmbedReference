@@ -39,8 +39,8 @@ const Embed = () => {
   }},[])
   return (
     <>
-    <div>Test Look</div>
-      <div className='stuff' style={{width: '100%', height: '100%'}}>
+      <div>Test Look</div>
+      <div className='stuff' style={{ width: '100%', height: '100%' }}>
         <div className="look-container" ref={LookDiv}></div>
       </div>
     </>

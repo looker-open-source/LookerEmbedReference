@@ -274,21 +274,9 @@ body {
   opacity: 1;
 }
 
-.page-title-div {
-  font-family: "Google Sans", "Open Sans", Arial, Helvetica, sans-serif;
-  font-size: 26px;
-  color: #5F6368;
-  font-weight: 200;
-}
-
 .dash-filters-dashboard {
   width: 100%;
   height: 95vh;
-}
-
-.dash-filters-dashboard > iframe {
-  width: 100%;
-  height: 100%;
 }
 
 .embed-dashboard {
@@ -296,19 +284,9 @@ body {
   height: calc(100% - 30px);
 }
 
-.embed-dashboard > iframe {
-  width: 100%;
-  height: 100%;
-}
-
 .embed-dashboard-download {
   width: 100%;
   height: calc(100% - 111px);
-}
-
-.embed-dashboard-download > iframe {
-  width: 100%;
-  height: 100%;
 }
 
 .embed-dashboard-common-button{
@@ -333,19 +311,6 @@ body {
   height: 70vh;
 }
 
-.embed-dashboard-events > iframe {
-  width: 100%;
-  height: 100%;
-}
-
-.embed-dashboard-events-dev-message{
-  font-family: "Google Sans", "Open Sans", Arial, Helvetica, sans-serif;
-  font-size: 20px;
-  color: #5F6368;
-  font-weight: 200;
-  margin-left: 3rem;
-}
-
 .embed-dashboard-layout-color-toggle-style{
   margin-left: auto;
   margin-right: 40px;
@@ -360,11 +325,6 @@ body {
 .embed-dashboard-layout-dashboard {
   width: 100%;
   height: calc(100% - 131px);
-}
-
-.embed-dashboard-layout-dashboard > iframe {
-  width: 100%;
-  height: 100%;
 }
 
 .embed-dashboard-layout-blue-icon {
@@ -386,11 +346,6 @@ body {
   height: calc(100% - 110px);
 }
 
-.embed-dashboard-wfilters-dashboard > iframe {
-  width: 100%;
-  height: 100%;
-}
-
 .embed-dashboard-wfilters-filter-label{
   font-family: inherit;
   margin: 0px;
@@ -406,20 +361,9 @@ body {
   height: calc(100% - 30px);
 }
 
-.explore-container > iframe {
-  width: 100%;
-  height: 100%;
-}
-
-
 .look-container {
   width: 100%;
   height: 95vh; 
-}
-
-.look-container > iframe {
-  width: 100%;
-  height: 100%;
 }
 
 .query-container {
@@ -427,19 +371,9 @@ body {
   height: calc(100% - 30px);
 }
 
-.query-container > iframe {
-  width: 100%;
-  height: 100%;
-}
-
 .dashboard-container-v2 {
   width: 100%;
   height: 45vh;
-}
-
-.dashboard-container-v2 > iframe {
-  width: 100%;
-  height: 100%;
 }
 
 .query-container-v2 {
@@ -447,23 +381,10 @@ body {
   height: 35vh;
 }
 
-.query-container-v2 > iframe {
-  width: 100%;
-  height: 100%;
-}
-
 .top-banner-image {
   width: 100px;
   height: 27px;
   padding-left: 1rem;
-}
-
-.top-banner-header {
-  font-family: "Google Sans", "Open Sans", Arial, Helvetica, sans-serif;
-  font-size: 26px;
-  color: #5F6368;
-  font-weight: 200;
-  padding-top: 20px;
 }
 
 .embed-form-submit-button {
@@ -480,4 +401,30 @@ body {
   font-size: 0.875rem;
   height: 36px;
   color: white;
+}
+
+.embed-dashboard>iframe,
+.embed-dashboard-download>iframe, .embed-dashboard-events > iframe, .embed-dashboard-layout-dashboard, .embed-dashboard-wfilters-dashboard > iframe, .explore-container > iframe, .look-container > iframe, .query-container > iframe, .dashboard-container-v2 > iframe, .query-container-v2 > iframe {
+  width: 100%;
+  height: 100%;
+}
+
+.text-header-style {
+  font-family: "Google Sans", "Open Sans", Arial, Helvetica, sans-serif;
+  color: #5F6368;
+  font-weight: 200;
+}
+
+.page-title-div {
+  font-size: 26px;
+}
+
+.top-banner-header {
+  font-size: 26px;
+  padding-top: 20px;
+}
+
+.embed-dashboard-events-dev-message {
+  font-size: 20px;
+  margin-left: 3rem;
 }

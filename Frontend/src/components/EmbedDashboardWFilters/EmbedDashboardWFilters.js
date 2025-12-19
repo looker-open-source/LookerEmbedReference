@@ -129,7 +129,6 @@ const EmbedDashboardWFilters = () => {
   );
 };
 
-
 export default EmbedDashboardWFilters;
 
 // Utilizes the more custom implementation of Looker filter components described in the filter components documentation.

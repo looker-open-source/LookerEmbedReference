@@ -125,8 +125,8 @@ const EmbedDashboardDownload = () => {
       </Space>
       <LoadingSpinner loading={loading} />
       {/* Step 0 - we have a simple container, which performs a callback to our makeDashboard function */}
-       <div className="embed-dashboard-download" ref={makeDashboard}></div>
-      </div>
+      <div className="embed-dashboard-download" ref={makeDashboard}></div>
+    </div>
   );
 };
 

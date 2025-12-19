@@ -98,7 +98,7 @@ const EmbedTwoIframes = () => {
   return (
     <>
       <PageTitle text={"Multiple Embeds"} />
-      <LoadingSpinner loading={loading}/>
+      <LoadingSpinner loading={loading} />
       <Accordion2 indicatorPosition="left" label="Dashboard">
         {/* Step 0b - we have a simple container, which performs a callback to our makeDashboard function */}
         <div className="dashboard-container-v2" ref={makeDashboard}></div>

@@ -17,7 +17,7 @@ import React from "react"
 
   export const PageTitle = ({text}) => {
     return (
-      <div className="page-title-div">{text}</div>
+      <div className="page-title-div text-header-style">{text}</div>
     )      
   }
 

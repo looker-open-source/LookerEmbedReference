@@ -68,8 +68,8 @@ const makeDashboard2 = useCallback((el) => {
 }, [])
   return (
     <>
-    <div className="look-container" ref={makeDashboard}></div>
-    <div className="look-container" ref={makeDashboard2}></div>
+      <div className="look-container" ref={makeDashboard}></div>
+      <div className="look-container" ref={makeDashboard2}></div>
     </>
   )
 }

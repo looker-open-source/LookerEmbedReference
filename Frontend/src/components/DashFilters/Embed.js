@@ -83,21 +83,18 @@ const Status = [
   },
 ]
 
-
   return (
     <>
-          <Box height="100" > 
-          <CheckboxGroup pl="10"
-            defaultValue={['']}
-            inline
-            name="group1"
-            options={Status}
-            onChange={(e)=>{updateDashboardFilters(e)}}
-              />
-          </Box>
-          <div className="dash-filters-dashboard" ref={makeDashboard} />
-
-          
+      <Box height="100" >
+        <CheckboxGroup pl="10"
+          defaultValue={['']}
+          inline
+          name="group1"
+          options={Status}
+          onChange={(e) => { updateDashboardFilters(e) }}
+        />
+      </Box>
+      <div className="dash-filters-dashboard" ref={makeDashboard} />
     </>
   )
 }

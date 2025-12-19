@@ -55,10 +55,7 @@ const EmbedExplore = () => {
   }, []);
   return (
     <>
-      <div
-        className="stuff"
-        style={{ width: "100%", height: "calc(100% - 45px)" }}
-      >
+      <div className="stuff" style={{ width: "100%", height: "calc(100% - 45px)" }}>
         <PageTitle text={"Embedded Explore"} />
         <LoadingSpinner loading={loading} />
         {/* Step 0 we have a simple container, which performs a callback to our createExplore function */}
@@ -67,6 +64,5 @@ const EmbedExplore = () => {
     </>
   );
 };
-
 
 export default EmbedExplore;
