@@ -16,7 +16,6 @@
 // This file is used to embed an explore using LookerEmbedSDK with EmbedBuilder to initialize your connection and help create the iframe element
 
 import React, { useCallback } from "react";
-import styled from "styled-components";
 import { LookerEmbedSDK } from "@looker/embed-sdk";
 import { PageTitle } from "../common/PageTitle";
 import { LoadingSpinner } from "../common/LoadingSpinner";
@@ -56,26 +55,14 @@ const EmbedExplore = () => {
   }, []);
   return (
     <>
-      <div
-        className="stuff"
-        style={{ width: "100%", height: "calc(100% - 45px)" }}
-      >
+      <div className="stuff" style={{ width: "100%", height: "calc(100% - 45px)" }}>
         <PageTitle text={"Embedded Explore"} />
         <LoadingSpinner loading={loading} />
         {/* Step 0 we have a simple container, which performs a callback to our createExplore function */}
-        <Explore ref={createExplore}></Explore>
+        <div className="explore-container" ref={createExplore}></div>
       </div>
     </>
   );
 };
-
-const Explore = styled.div`
-  width: 100%;
-  height: calc(100% - 30px);
-  & > iframe {
-    width: 100%;
-    height: 100%;
-  }
-`;
 
 export default EmbedExplore;

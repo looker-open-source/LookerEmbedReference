@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import React, { useCallback } from 'react'
-import styled from "styled-components"
 import { LookerEmbedSDK } from '@looker/embed-sdk'
 
 /**
@@ -40,21 +39,13 @@ const Embed = () => {
   }},[])
   return (
     <>
-    <div>Test Look</div>
-      <div className='stuff' style={{width: '100%', height: '100%'}}>
-        <Look ref={LookDiv}></Look>
+      <div>Test Look</div>
+      <div className='stuff' style={{ width: '100%', height: '100%' }}>
+        <div className="look-container" ref={LookDiv}></div>
       </div>
     </>
   )
 }
-
-const Look = styled.div`
-  width: 100%;
-  height: 95vh;
-  & > iframe {
-    width: 100%;
-    height: 100%;
-  }
-` 
+ 
 
 export default Embed

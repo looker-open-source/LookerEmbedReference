@@ -16,7 +16,6 @@
 // This file is used to embed a dashboard using LookerEmbedSDK with EmbedBuilder to initialize your connection and help create the iframe element
 
 import React, { useCallback } from "react";
-import styled from "styled-components";
 import { LookerEmbedSDK } from "@looker/embed-sdk";
 import { Space } from "@looker/components";
 import { PageTitle } from "../common/PageTitle";
@@ -64,19 +63,10 @@ const EmbedDashboard = () => {
         <PageTitle text={"Embedded Dashboard"} />
         <LoadingSpinner loading={loading} />
         {/* Step 0) we have a simple container, which performs a callback to our makeDashboard function */}
-        <Dashboard ref={makeDashboard}></Dashboard>
+        <div className="embed-dashboard" ref={makeDashboard} />
       </div>
     </Space>
   );
 };
 
-// A little bit of style here for heights and widths.
-const Dashboard = styled.div`
-  width: 100%;
-  height: calc(100% - 30px);
-  & > iframe {
-    width: 100%;
-    height: 100%;
-  }
-`;
 export default EmbedDashboard;

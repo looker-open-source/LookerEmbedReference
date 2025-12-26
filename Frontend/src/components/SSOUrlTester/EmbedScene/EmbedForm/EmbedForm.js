@@ -162,24 +162,8 @@ export const EmbedForm = ({ authRequest, setAuthRequest, setEmbedUrl }) => {
           required
         />
       </Fieldset>
-      <Button>Submit</Button>
+      <button className="embed-form-submit-button">Submit</button>
     </Form>
   );
 };
 
-const Button = styled.button`
-background: rgb(26, 115, 232); 
-border: 1px solid rgb(66, 133, 244);
-padding: 0px 1.5rem;
--webkit-box-align: center;
-align-items: center;
-border-radius: 5px; 
-cursor: pointer;
-font-weight: 500;
--webkit-box-pack: center;
-justify-content: center;
-line-height: 1;
-font-size: 0.875rem;
-height: 36px;
-color:white;
-`

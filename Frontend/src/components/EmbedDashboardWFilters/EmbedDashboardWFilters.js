@@ -16,7 +16,6 @@
 // This file is used to embed a dashboard using LookerEmbedSDK with EmbedBuilder to initialize your connection and help create the iframe element
 
 import React, { useCallback, useEffect } from "react";
-import styled from "styled-components";
 import { LookerEmbedSDK } from "@looker/embed-sdk";
 import { Space, SpaceVertical } from "@looker/components";
 import { PageTitle } from "../common/PageTitle";
@@ -123,22 +122,13 @@ const EmbedDashboardWFilters = () => {
           </Space>
         </ComponentsProvider>
         {/* Step 0) we have a simple container, which performs a callback to our makeDashboard function */}
-        <Dashboard ref={makeDashboard}></Dashboard>
+        <div className="embed-dashboard-wfilters-dashboard" ref={makeDashboard}></div>
         *Custom themes must be enabled on your Looker instance to hide the embedded dashboard's filters
       </div>
     </Space>
   );
 };
 
-// A little bit of style here for heights and widths.
-const Dashboard = styled.div`
-  width: 100%;
-  height: calc(100% - 110px);
-  & > iframe {
-    width: 100%;
-    height: 100%;
-  }
-`;
 export default EmbedDashboardWFilters;
 
 // Utilizes the more custom implementation of Looker filter components described in the filter components documentation.
@@ -157,19 +147,9 @@ export const DashFilters = ({ filter, expression, onChange }) => {
     sdk,
   });
 
-  const FilterLabel = styled.span`
-    font-family: inherit;
-    margin: 0px;
-    padding: 0px;
-    color: rgb(64, 70, 75);
-    font-size: 0.75rem;
-    font-weight: 500;
-    padding-bottom: 0.25rem;
-  `;
-
   return (
     <SpaceVertical gap="u0" width="auto">
-      <FilterLabel>{filter.name}</FilterLabel>
+      <span className="embed-dashboard-wfilters-filter-label">{filter.name}</span>
       <Filter
         name={filter.name}
         type={filter.type}

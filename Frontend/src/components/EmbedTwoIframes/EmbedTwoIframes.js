@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import React, { useCallback } from "react";
-import styled from "styled-components";
 import {
   Accordion2,
   Accordion,
@@ -99,34 +98,17 @@ const EmbedTwoIframes = () => {
   return (
     <>
       <PageTitle text={"Multiple Embeds"} />
-      <LoadingSpinner loading={loading}/>
+      <LoadingSpinner loading={loading} />
       <Accordion2 indicatorPosition="left" label="Dashboard">
         {/* Step 0b - we have a simple container, which performs a callback to our makeDashboard function */}
-        <Dashboard ref={makeDashboard}></Dashboard>
+        <div className="dashboard-container-v2" ref={makeDashboard}></div>
       </Accordion2>
       <Accordion2 indicatorPosition="left" defaultOpen label="Query">
         {/* Step 0a - we have a simple container, which performs a callback to our showVisualization function */}
-        <Query ref={showVisualization}></Query>
+        <div className="query-container-v2" ref={showVisualization}></div>
       </Accordion2>
     </>
   );
 };
 
-const Dashboard = styled.div`
-  width: 100%;
-  height: 45vh;
-  & > iframe {
-    width: 100%;
-    height: 100%;
-  }
-`;
-
-const Query = styled.div`
-  width: 100%;
-  height: 35vh;
-  & > iframe {
-    width: 100%;
-    height: 100%;
-  }
-`;
 export default EmbedTwoIframes;

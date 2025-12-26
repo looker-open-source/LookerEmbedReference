@@ -17,15 +17,8 @@ import React from "react"
 
   export const PageTitle = ({text}) => {
     return (
-      <PageTitleDiv>{text}</PageTitleDiv>
+      <div className="page-title-div text-header-style">{text}</div>
     )      
   }
 
-  const PageTitleDiv = styled.div`
-  font-family: "Google Sans", "Open Sans", Arial, Helvetica, sans-serif;
-  font-size: 26px;
-  color: #5F6368;
-  font-weight: 200;
-  }
-`
 

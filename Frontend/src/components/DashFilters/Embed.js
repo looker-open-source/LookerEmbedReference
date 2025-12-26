@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import React, { useCallback, useState }  from 'react'
-import styled from "styled-components"
 import { LookerEmbedSDK } from '@looker/embed-sdk'
 import { Box,CheckboxGroup } from '@looker/components'
 
@@ -84,30 +83,20 @@ const Status = [
   },
 ]
 
-
   return (
     <>
-          <Box height="100" > 
-          <CheckboxGroup pl="10"
-            defaultValue={['']}
-            inline
-            name="group1"
-            options={Status}
-            onChange={(e)=>{updateDashboardFilters(e)}}
-              />
-          </Box>
-          <Dashboard ref={makeDashboard} />
-          
+      <Box height="100" >
+        <CheckboxGroup pl="10"
+          defaultValue={['']}
+          inline
+          name="group1"
+          options={Status}
+          onChange={(e) => { updateDashboardFilters(e) }}
+        />
+      </Box>
+      <div className="dash-filters-dashboard" ref={makeDashboard} />
     </>
   )
 }
 
-const Dashboard = styled.div`
-  width: 100%;
-  height: 95vh;
-  & > iframe {
-    width: 100%;
-    height: 100%;
-  }
-` 
 export default Embed
