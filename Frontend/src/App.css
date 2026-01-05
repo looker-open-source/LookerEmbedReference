@@ -14,10 +14,12 @@ http://www.apache.org/licenses/LICENSE-2.0
 */
 
 .top-banner {
-  height: 60px;
-  box-shadow: rgb(222 225 229) 0px -1px 0px inset;
-  margin-bottom: 20px;
+  padding: 1rem; 
+  box-shadow: rgb(222 225 229) 0 -1px 0 inset;
   background-color: #ffffff;
+  margin-bottom: 1.25rem; 
+  display: flex;
+  align-items: center;
 }
 
 @keyframes navOpen {
@@ -45,11 +47,8 @@ http://www.apache.org/licenses/LICENSE-2.0
 }
 
 .navigation {
-  vertical-align: top;
-  align-self: flex-start;
-  position: relative;
-  z-index: 1;
-  white-space: nowrap;
+  grid-area: sidebar;
+  height: 100%; 
 }
 
 .open {
@@ -68,6 +67,8 @@ http://www.apache.org/licenses/LICENSE-2.0
   height: 100%;
   vertical-align: top;
   z-index: 1;
+  display: flex; 
+  flex-direction: column;
 }
 
 .dashboard-nav-items {
@@ -131,47 +132,52 @@ a.active > .nav-item {
 }
 
 .main-container {
-  width: calc(100% - 280px);
+  grid-area: main;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
   margin: 0;
-  align-self: baseline;
+  display: flex; 
+  flex-direction: column;
 }
 
 body {
   margin: 0;
+  height: 100vh;
 }
 
 #fullpage {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  width: 100vw;
+  display: grid;
   height: 100%;
+  width: 100%;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "header header"
+    "sidebar main";
 }
 
 .topbar {
-  /* Blue/900 */
   background: #174ea6;
-  /* height: 50px; */
-  min-height: 50px;
-  gap: 16px;
-  width: 100%;
   color: white;
-  /* Elevation Light/5 */
   box-shadow: 0px 8px 12px 6px rgba(60, 64, 67, 0.15),
-    0px 4px 4px rgba(60, 64, 67, 0.3);
+  0px 4px 4px rgba(60, 64, 67, 0.3);
+  grid-area: header;
+  width: 100%; 
+  box-sizing: border-box;
+  min-height: 3.5rem;
   display: flex;
   flex-direction: row;
   align-items: center;
-  padding: 0 16px;
-  z-index: 1;
+  padding: 0 1rem;
 }
 
 .home_title {
-  font-size: 32px;
+  font-size: 2rem;
 }
 
 .sections {
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 .dropdown {
@@ -279,21 +285,12 @@ body {
   height: 95vh;
 }
 
-.embed-dashboard {
-  width: 100%;
-  height: calc(100% - 30px);
-}
-
-.embed-dashboard-download {
-  width: 100%;
-  height: calc(100% - 111px);
-}
-
 .embed-dashboard-common-button{
   background: rgb(26, 115, 232);
   border: 1px solid rgb(66, 133, 244);
   padding: 0px 1.5rem;
   -webkit-box-align: center;
+  display: flex;
   align-items: center;
   border-radius: 5px;
   cursor: pointer;
@@ -306,31 +303,21 @@ body {
   color: white;
 }
 
-.embed-dashboard-events {
-  width: 100%;
-  height: 70vh;
-}
-
 .embed-dashboard-layout-color-toggle-style{
   margin-left: auto;
-  margin-right: 40px;
+  margin-right: 2.5rem;
 }
 
 .embed-dashboard-layout-toggle-area{
-  margin-top: 20px;
-  margin-left: 20px;
+  margin-top: 1.25rem;
+  margin-left: 1.25rem;
   display: flex;
-}
-
-.embed-dashboard-layout-dashboard {
-  width: 100%;
-  height: calc(100% - 131px);
 }
 
 .embed-dashboard-layout-blue-icon {
   background-color: rgb(87, 128, 205);
-  width: 25px;
-  height: 25px;
+  width: 1.56rem;
+  height: 1.56rem;
   border-radius: 50%;
 }
 
@@ -339,11 +326,6 @@ body {
   width: 25px;
   height: 25px;
   border-radius: 50%;
-}
-
-.embed-dashboard-wfilters-dashboard {
-  width: 100%;
-  height: calc(100% - 110px);
 }
 
 .embed-dashboard-wfilters-filter-label{
@@ -358,7 +340,6 @@ body {
 
 .explore-container {
   width: 100%;
-  height: calc(100% - 30px);
 }
 
 .look-container {
@@ -368,7 +349,6 @@ body {
 
 .query-container {
   width: 100%;
-  height: calc(100% - 30px);
 }
 
 .dashboard-container-v2 {
@@ -382,8 +362,8 @@ body {
 }
 
 .top-banner-image {
-  width: 100px;
-  height: 27px;
+  width: 6.25rem;
+  height: 1.6875rem;
   padding-left: 1rem;
 }
 
@@ -416,15 +396,30 @@ body {
 }
 
 .page-title-div {
-  font-size: 26px;
+  font-size: 1.625rem;
 }
 
 .top-banner-header {
-  font-size: 26px;
-  padding-top: 20px;
+  font-size: 1.625rem;
+  margin-bottom: 0;
+  line-height: 1;
 }
 
 .embed-dashboard-events-dev-message {
-  font-size: 20px;
+  font-size: 1.25rem;
   margin-left: 3rem;
+}
+
+.embed-dashboard,
+.embed-dashboard-download,
+.embed-dashboard-events,
+.embed-dashboard-layout-dashboard,
+.embed-dashboard-wfilters-dashboard,
+.explore-container,
+.look-container,
+.query-container {
+  flex: 1; 
+  width: 100%;
+  height: auto;
+  min-height: 0;
 }
