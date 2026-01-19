@@ -384,10 +384,15 @@ body {
 }
 
 .embed-dashboard>iframe,
-.embed-dashboard-download>iframe, .embed-dashboard-events > iframe, .embed-dashboard-layout-dashboard, .embed-dashboard-wfilters-dashboard > iframe, .explore-container > iframe, .look-container > iframe, .query-container > iframe, .dashboard-container-v2 > iframe, .query-container-v2 > iframe {
+.embed-dashboard-download>iframe, .embed-dashboard-events > iframe, .embed-dashboard-layout-dashboard > iframe, .embed-dashboard-wfilters-dashboard > iframe, .explore-container > iframe, .look-container > iframe, .query-container > iframe, .dashboard-container-v2 > iframe, .query-container-v2 > iframe {
   width: 100%;
   height: 100%;
 }
+
+.embed-dashboard-download>iframe,.embed-dashboard-layout-dashboard>iframe {
+  height: 95vh;
+}
+
 
 .text-header-style {
   font-family: "Google Sans", "Open Sans", Arial, Helvetica, sans-serif;
