@@ -19,6 +19,9 @@ const { LookerNodeSDK } = require("@looker/sdk-node");
 const sdk = LookerNodeSDK.init40();
 
 var createSignedUrl = require("../auth/auth_utils");
+const catchAsync = (fn) => (req, res, next) => {
+  fn(req, res, next).catch(next);
+};
 
 /*****************************************
  * Authentication                        *
@@ -27,7 +30,7 @@ var createSignedUrl = require("../auth/auth_utils");
 /**
  * Create an API auth token based on the provided embed user credentials
  */
-router.get("/embed-user/token", async (req, res) => {
+router.get("/embed-user/token", catchAsync(async (req, res) => {
   const userCred = await sdk.ok(sdk.user_for_credential("embed", req.query.id));
   const embed_user_token = await sdk.login_user(userCred.id.toString());
   const u = {
@@ -35,12 +38,12 @@ router.get("/embed-user/token", async (req, res) => {
     token_last_refreshed: Date.now(),
   };
   res.json({ ...u });
-});
+}));
 
 /**
  * Update the embed users permissions
  */
-router.post("/embed-user/:id/update", async (req, res) => {
+router.post("/embed-user/:id/update", catchAsync(async (req, res) => {
   const userCred = await sdk.ok(
     sdk.user_for_credential("embed", req.params.id)
   );
@@ -49,7 +52,7 @@ router.post("/embed-user/:id/update", async (req, res) => {
   };
   await sdk.set_user_attribute_user_value(userCred.id, 23, attrs);
   res.json({ status: "updated" });
-});
+}));
 
 /**
  * Create a signed URL for embedding content
@@ -68,7 +71,7 @@ router.get("/auth", (req, res) => {
  * Endpoint for signing an embed URL. Embed SSO parameters can be passed in as
  * part of the body
  */
-router.post("/sso-url", async (req, res) => {
+router.post("/sso-url", catchAsync(async (req, res) => {
   const body = req.body;
   const targetUrl = body.target_url;
   const response = {
@@ -76,7 +79,7 @@ router.post("/sso-url", async (req, res) => {
   };
   res.setHeader("Content-Type", "application/json");
   res.status(200).send(response);
-});
+}));
 
 /****************************************
  * Backend Data API calls               *
@@ -85,25 +88,25 @@ router.post("/sso-url", async (req, res) => {
 /**
  * Get details of the current authenticated user
  */
-router.get("/me", async (req, res, next) => {
+router.get("/me", catchAsync(async (req, res, next) => {
   const me = await sdk.ok(sdk.me()).catch((e) => console.log(e));
   res.send(me);
-});
+}));
 
 /**
  * Get a list of all looks the authenticated user can access
  */
-router.get("/looks", async (req, res, next) => {
+router.get("/looks", catchAsync(async (req, res, next) => {
   const looks = await sdk
     .ok(sdk.all_looks("id,title,embed_url,query_id"))
     .catch((e) => console.log(e));
   res.send(looks);
-});
+}));
 
 /**
  * Run the query associated with a look, and return that data as a json response
  */
-router.get("/looks/:id", async (req, res, next) => {
+router.get("/looks/:id", catchAsync(async (req, res, next) => {
   let target_look = req.params.id;
   let query_data = await sdk
     .ok(sdk.look(target_look, "query"))
@@ -121,6 +124,6 @@ router.get("/looks/:id", async (req, res, next) => {
       res.send({ error: e.message });
     });
   res.send(newQueryResults);
-});
+}));
 
 module.exports = router;
