@@ -23,26 +23,6 @@ const createSignedUrl = require("../auth/auth_utils");
 const { DataChatServiceClient, DataAgentServiceClient } = require('@google-cloud/geminidataanalytics');
 const conversationalAnalyticsSDK = new DataChatServiceClient()
 const dataAgentSDK = new DataAgentServiceClient()
-// const test = {
-//   fields: {
-//     title: {
-//       stringValue: 'Total Population for Top 10 States',
-//       kind: 'stringValue',
-//     }
-//   }
-// }
-
-// def _convert(v):
-//   if isinstance(v, proto.marshal.collections.maps.MapComposite):
-//     return {k: _convert(v) for k, v in v.items()}
-//   elif isinstance(v, proto.marshal.collections.RepeatedComposite):
-//     return [_convert(el) for el in v]
-//   elif isinstance(v, (int, float, str, bool)):
-//     return v
-//   else:
-//     return MessageToDict(v)
-
-
 
 const AGENT_ID = process.env.CLOUD_AGENT_ID
 const PROJECT_ID = process.env.CLOUD_PROJECT_ID
@@ -157,62 +137,6 @@ router.get("/looks/:id", async (req, res, next) => {
  * Backend Conversational Analytics API calls    *
  *************************************************/
 
-const SYSTEM_INSTRUCTION = `
-- system_instruction: When asked about 'filter on dimension state.state_name being', limit response to where dimension 'state.state_name' equals provided values. When asked about 'filter on dimension county.county_name being', limit response to where dimension 'county.county_name' equals provided values.  
-- glossaries:
-    - glossary:
-        - term: state.state_name
-        - description: Maps to the dimension 'state.state_name'.
-        - term: county.county_name
-        - description: Maps to the dimension 'county.county_name'.
-- additional_descriptions:
-    - text: This agent will filter response or results on the provided dimensions.`
-
-router.post("/patchagent", async (req, res, next) => {
-  try {
-    const response = await dataAgentSDK.updateDataAgent({
-      updateMask: {
-        paths: ["*"]
-      },
-      dataAgent: {
-        dataAnalyticsAgent: {
-          publishedContext: {
-            systemInstruction: SYSTEM_INSTRUCTION,
-            options: {
-              chart: {
-                image: {
-                  svg: {}
-                }
-              }
-            },
-            datasourceReferences: {
-              looker: {
-                exploreReferences: [
-                  {
-                    lookmlModel: "data_block_acs_bigquery",
-                    explore: "acs_census_data",
-                    lookerInstanceUri: "https://8720823d-b429-43af-8577-70195bad34e3.looker.app/"
-                  },
-                  {
-                    lookmlModel: "data_block_acs_bigquery",
-                    explore: "congressional_district",
-                    lookerInstanceUri: "https://8720823d-b429-43af-8577-70195bad34e3.looker.app/"
-                  }
-                ]
-              }
-            } 
-          }
-        },
-        name: `${PARENT_PATH}/dataAgents/${AGENT_ID}`,
-      },
-    })
-
-    res.send(response[0])
-  } catch(e) {
-    next(e)
-  }
-})
-
 /**
  * Create new conversation
  */
@@ -281,7 +205,5 @@ router.post("/chat", async (req, res, next) => {
     next(e)
   }
 });
-
-
 
 module.exports = router;
