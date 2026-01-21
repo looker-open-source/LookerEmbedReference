@@ -20,6 +20,7 @@ The frontend server will handle user authentication, navigation, and rendering e
 * html entry point (*src/index.js*)
 * menu (*src/App.js*)
 * routing (*src/App.js*)
+* Conversational Analytics chat embedding (*src/components/EmbedChat*)
 * dashboard embedding (*src/components/EmbedDashboard*)
 * explore embedding (*src/components/EmbedExplore*)
 * query embedding (*src/components/EmbedQuery*)
@@ -40,7 +41,7 @@ This application relies heavily on [Looker Components](https://developers.looker
 
 ## Looker Setup
 
-You need administartive access to a Looker instance to embed Looker.
+You need administrative access to a Looker instance to embed Looker.
 
 This frontend example uses a pre-defined set of Looker dashboards and explores, made available through a public Looker block that can be added to your Looker instance.
 
@@ -71,7 +72,7 @@ If you already have a connection to Google BigQuery configured in your Looker in
 ### Update the Embed Domain Allowlist
 In Looker, navigate to the Admin -> Platform -> Embed configuration page.  Add the entry 'https://localhost:3001' to the Embed Domain Allowlist.  If you are running the application on an app server, add that server's URI as well. If this URI is misspelled, or has a trailing '/', you will have CORS issues and the app will not function properly.
 
-# Installation
+# Local installation
 Before using the frontend server, you'll need to install it.
 
 ## Prerequisites
@@ -110,16 +111,17 @@ yarn dev
 
 ## 4. Start the backend API server
 
-Follow directions in the backend repository examples provided ([node]( ../Backend-Node#installation-local) or [java]( ../Backend-Java/blob/main/README.md#installation-local))
+Follow directions in the backend repository examples provided ([node]( ../Backend-Node#installation-local) or [java]( ../Backend-Java/blob/main/README.md#installation-local)) **You must use the [node]( ../Backend-Node#installation-local) server for the Conversational Analytics chat embedding example.** 
 
 ## 5. Access frontend [https://localhost:3001/embed-dashboard](https://localhost:3001/embed-dashboard)  
 Change the port from 3001 if you set a different `PBL_CLIENT_PORT` environment variable
 
 
-# Running in Google AppEngine
+# Google App Engine installation
 
-Instead of running this locally, use Google AppEngine to run it in the cloud.
-Follow the directions in the backend repository README ([node]( ../Backend-Node/README.md#google-appengine-installation-optional) or [java]( ../Backend-Java/blob/main/README.md#google-appengine-installation-optional))
+You can use Google AppEngine to run the frontend server in the cloud instead of running it locally.
+Follow the directions in the backend repository README ([node]( ../Backend-Node/README.md#google-appengine-installation-optional) or [java]( ../Backend-Java/blob/main/README.md#google-appengine-installation-optional)). **You must use the [node]( ../Backend-Node#installation-local) server for the Conversational Analytics chat embedding example.** 
+
 
 
 ### Other resources:

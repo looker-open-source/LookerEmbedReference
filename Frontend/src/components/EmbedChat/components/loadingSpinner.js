@@ -1,4 +1,3 @@
-import React from "react"
 import { Span, Spinner } from "@looker/components"
 import styled from "styled-components";
 

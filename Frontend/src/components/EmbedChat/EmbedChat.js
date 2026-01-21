@@ -12,13 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Embedded dashboards let you build an interactive and highly curated data experience within your application
-// This file is used to embed a dashboard using LookerEmbedSDK with EmbedBuilder to initialize your connection and help create the iframe element
+// This page component embeds a Conversational Analytics powered chat alongside an embedded dashboard. The page keeps track of the dashboard's filter's state for the chat, and the chat can control the dashboard's filters through this page. 
 
-import React, { useCallback, useEffect } from "react";
-import styled from "styled-components";
+import React, { useCallback } from "react";
 import { LookerEmbedSDK } from "@looker/embed-sdk";
-import { Space, ButtonOutline } from "@looker/components";
+import { Space, ButtonOutline, Span } from "@looker/components";
 import { PageTitle } from "../common/PageTitle";
 import { LoadingSpinner } from "../common/LoadingSpinner";
 import { Chat } from "./components/chat"
@@ -31,31 +29,36 @@ const EMPTY_FILTERS = {
 const EmbedChat = () => {
   const [loading, setLoading] = React.useState(true)
   const [dashboard, setDashboard] = React.useState()
-  // State keeps track of the embedded dashboard's filters. The filters are hardcoded in this example. Follow the EmbedDashboardWFilters.js example for dynamic filters.
+  
+  // State to keep track of the embedded dashboard's filters. The filter's schema is hardcoded in this example. Follow the EmbedDashboardWFilters.js example for dynamic filters.
   const [filters, setFilters] = React.useState(EMPTY_FILTERS)
 
-  // Set newly selected filter values in state, to pass as props to the chat.
+  /*
+    Step 4: When the iframe emits the "dashboard:filters:changed" event, set the newly selected filter values in state to pass as props to the chat.
+  */
   const handleDashboardFilterChange = (event) => {
     setFilters(event.dashboard.dashboard_filters)
   };
 
-  // The chat will set the dashboard's filters with this callback.
+  /*
+    Step 5: Enable the chat component to set the dashboard's filters with this callback 
+  */
   const setDashboardFilters = (filters) => {
-    // Using the dashboard state, we are sending a message to the iframe to update the filters with the new values
+    // Sending a message to the iframe to update the filters with new values
     dashboard.send("dashboard:filters:update", {filters: filters});
-    // Send "dashboard:run" message for the filter change to take effect
+    // Send "dashboard:run" message immediately after to re-run the queries with the new filters applied
     dashboard.send("dashboard:run");
   }
 
-  // Set the state of the dashboard so we can update filters and run
+  // Set a reference to the embedded dashboard in state so can send it javascript events.
   const handleDashboardLoaded = dashboard => {
     setDashboard(dashboard);
     setLoading(false);
   };
 
   /*
-   Step 2 Initialization of the EmbedSDK happens when the user first access the application
-   See App.js for reference
+    Step 1: Initialize the Embed SDK, which happens on application load.
+    See App.js for reference
   */
 
   const makeDashboard = useCallback(el => {
@@ -64,21 +67,19 @@ const EmbedChat = () => {
     }
     el.innerHTML = "";
     /*
-      Step 3 Create your dashboard (or other piece of embedded content) through a simple set of chained methods
+      Step 2 Create an embedded dashboard with the Embed SDK. See EmbedDashboard.js for reference
     */
     LookerEmbedSDK.createDashboardWithId("8fbA0wm0rZNykTcqwgywd6")
-      // adds the iframe to the DOM as a child of a specific element
       .appendTo(el)
-      // the .on() method allows us to listen for and respond to events inside the iframe. See here for a list of events: https://docs.looker.com/reference/embedding/embed-javascript-events
+      /*
+        Step 3 Listen to the "dashboard:filters:changed" event from the iframe. See here for a list of all events: https://docs.cloud.google.com/looker/docs/embedded-javascript-events#event_type_summary_table
+      */
       .on("dashboard:filters:changed", handleDashboardFilterChange)
-      // the .withTheme() applies a theme defined in the Looker instance
-      .withTheme('Embed_CA_Workshop')
-      // This line performs the call to the auth service to get the iframe's src='' url, places it in the iframe and the client performs the request to Looker
+      // Apply the default "Looker" theme which displays the embedded dashboard's filter so the user can interact with the filters.
+      .withTheme('Looker')
       .build()
-      // this establishes event communication between the iframe and parent page
       .connect()
       .then(handleDashboardLoaded)
-      // catch various errors which can occur in the process (note: does not catch 404 on content)
       .catch((error) => {
         console.error("An unexpected error occurred", error);
       });
@@ -94,11 +95,15 @@ const EmbedChat = () => {
           >
             Reset filters
           </ButtonOutline>
+          <Span>
+            <i>
+              This page only works with the Node backend
+            </i>
+          </Span>
         </Space>
         <Space height="calc(100% - 32px)">
           <LoadingSpinner loading={loading} />
-          {/* Step 1 we have a simple container, which performs a callback to our makeDashboard function */}
-          <Dashboard ref={makeDashboard}></Dashboard>
+          <div className="embed-dashboard-chat" ref={makeDashboard} />
           <Chat 
             currentFilters={filters}
             setFilters={setDashboardFilters}
@@ -109,13 +114,4 @@ const EmbedChat = () => {
   );
 };
 
-// A little bit of style here for heights and widths.
-const Dashboard = styled.div`
-  width: 75%;
-  height: 100%;
-  & > iframe {
-    width: 100%;
-    height: 100%;
-  }
-`;
 export default EmbedChat;

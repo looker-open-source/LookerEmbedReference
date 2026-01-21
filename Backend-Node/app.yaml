@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Rename this application-expample.yml to application.yml
-# Replace <> with appropriate values
-# Default server port
-
 runtime: nodejs16
 
 service: default

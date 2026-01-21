@@ -6,6 +6,7 @@ This application is the backend / server component supporting the [reference imp
 
 This [Node](https://nodejs.org) application uses the [Looker API](https://docs.looker.com/reference/api-and-integration) to provide embed urls to the user-facing React [application](../Frontend/).
 
+**You must use this Node Backend server for the Conversational Analytics chat embedding example.** 
 
 ## About Embedding Looker
 ---
@@ -13,53 +14,202 @@ Embedding Looker involves displaying and interacting with Looker content from an
 
 For more please see the documentation for the [Front End](../Frontend/README.md#about-embedding-looker) component.
 
+There are two methods of running this application; locally or on [GCP AppEngine.](https://cloud.google.com/appengine).
 
-## Prerequisites
----
-There are two methods of running this application; locally or on [GCP AppEngine.](https://cloud.google.com/appengine) 
+## Local installation
 
-* [Node](https://nodejs.org)
+### Prerequisites
+
+You local environment must have these dependencies installed:
+
+* [Node v18](https://nodejs.org) (v18 verified)
 * [Yarn](https://yarnpkg.com) package manager.
-* A valid Looker API Key created from [User Admin.](https://docs.looker.com/admin-options/settings/users#api3_keys)
+* [gcloud CLI](https://docs.cloud.google.com/sdk/docs/install-sdk). (OPTIONAL) Only if you want to enable Conversational Analytics chat.
 
-## Installation (local)
----
+### Steps
 
-* Clone or download a copy of this repo to your development machine.
-* Navigate (cd) to the template directory on your system.
+#### 1. Install dependencies
+
+* Clone or download a copy of this repo to your local environment
+* Navigate (cd) to the repo's root directory on your system.
 * Install the dependencies with [Yarn.](https://yarnpkg.com/)
 
-```
-  yarn install
-```
-Verify the version of Node on the host. Node version 16.14.2 LTS tested.  
+  ```
+    yarn install
+  ```
+
+#### 2. Setup environmental variables
+
+* Obtain a valid [Looker Client ID and Client Secret](https://docs.cloud.google.com/looker/docs/api-auth#authentication_with_an_sdk).
+* Obtain your [Looker instance's embed secret](https://docs.cloud.google.com/looker/docs/embed-enable).
+* Setup environment variables either in an .env file ([example](dot-env-example)) or in the environment directly in the terminal/command line using:  ```export envir_var=value```. The `.env` file should be saved at the root: `./Backend-Node/.env`
+
+  ```
+  PBL_BACKEND_PORT=3000
+  LOOKERSDK_API_VERSION=4.0
+  LOOKERSDK_BASE_URL=https://[INSTANCE].looker.com
+  LOOKERSDK_CLIENT_ID=[CLIENT_ID]
+  LOOKERSDK_CLIENT_SECRET=[CLIENT_SECRET]
+
+  # No protocol for this host. Do not include http/https in the LOOKERSDK_EMBED_HOST url
+  LOOKERSDK_EMBED_HOST=[INSTANCE].looker.com
+  LOOKERSDK_EMBED_SECRET=[EMBED_SECRET]
+  ```
+
+#### 2a. Setup Conversational Analytics (OPTIONAL)
+
+You must follow these steps if you want to enable the Conversational Analytics chat embedding example.
+
+##### Prerequisites
+
+You should have:
+* A Google Cloud project
+* A user account with access to the Google Cloud project
+
+##### 2a1. Setup Application Default Credentials (ADC) 
+
+* Authenticate with your user account in your local environment:
+
+  ```
+  gcloud auth login
+  ```
+
+* Set application default credentials (ADC) and the Google Cloud project on your gcloud:
+
+  ```
+  gcloud auth application-default login
+  gcloud auth application-default set-quota-project YOUR_PROJECT_ID
+  ```
+
+##### 2a2. Enable Cloud project APIs
+
+* Enable Cloud project APIs with the command below. Please replace `YOUR_PROJECT_ID` with the ID of your Google Cloud project:
+
+  ```
+  gcloud services enable geminidataanalytics.googleapis.com bigquery.googleapis.com cloudaicompanion.googleapis.com --project=YOUR_PROJECT_ID
+  ```
+
+##### 2a3. Create the Conversational Analytics data agent
+
+* Enable these cloud permissions on your user account:
+  
+  * `roles/cloudaicompanion.user`
+  * `roles/looker.instanceUser`
+  * `roles/bigquery.user`
+
+* Open [Google Colab](https://colab.research.google.com/)
+* Login as your user account
+* Navigate to `File` > `Open notebook` > `GitHub`
+* Enter `https://github.com/looker-open-source/LookerEmbedReference` into the `GitHub URL` field. 
+* Select the `ca-colab.ipynb` python notebook.
+* Run all of the notebook steps. You will need your Cloud project ID and your Looker instance’s URI with a trailing slash, like “https://my.looker.app/”. 
+* You should have a successful result at the end of the notebook.
+
+##### 2a4. Update your environment variables
+
+* Add the following environment variables to your local environment. Follow previous steps of setting up environment variables. Replace `YOUR_PROJECT_ID` with your Cloud project ID.
+
+  ```
+  CLOUD_AGENT_ID=looker_embed_reference_data_agent
+  CLOUD_PROJECT_ID=YOUR_PROJECT_ID
+  ```
+
+You now have a Conversational Analytics data agent available and ready to accept chat messages, query the Looker explores in your embedded Looker dashboard, and return results and visualizations.
+
+#### 3. Start the Server
+
+You can either start the server in dev mode:
+  ```
+  yarn dev  
+  ```
+or production mode:
+  ``` 
+  yarn start
+  ```
+
+## Google AppEngine Installation
+
+Follow these steps to deploy BOTH, the `Frontend` and `Backend-Node` server to Google AppEngine.
+
+Google [AppEngine](https://cloud.google.com/appengine) offers a fully managed and highly scalable cloud based hosting for both the backend and frontend server if you want to move beyond local testing.
+
+### Prerequisites
+
+You local environment must have these dependencies installed:
+
+* [gcloud CLI](https://docs.cloud.google.com/sdk/docs/install-sdk). 
+
+You should have:
+* A Google Cloud project
+* A user account with access to the Google Cloud project
+
+### Consider and mitigate security issues
+
+**Google is not responsible for any security issues or concerns stemming from using and/or deploying the Looker Embed Reference.**
+
+You should consider the potential issues exposing a public endpoint with the Google AppEngine.  Unless your Looker instance only contains non-sensitive data, you should protect the endpoint from unauthorized use.
+
+One option is you can configure  firewall rules to only allow access from specific IP addresses. Check out the [firewall rules documentation](https://docs.cloud.google.com/appengine/docs/flexible/creating-firewalls).
+
+**You are responsible for securing your Google App Engine deployment.**
 
 
-### Environmental variables
----
 
-These can be set in an .env file ([example](dot-env-example)) or in the environment directly in the terminal/command line using:  ```export envir_var=value```
+### Steps
 
-Note: .env file should be saved at the root: ./Backend-Node/.env
+#### 1. Setup your initial `.env` file
 
-```
-PBL_BACKEND_PORT=3000
-LOOKERSDK_API_VERSION=4.0
-LOOKERSDK_BASE_URL=https://[INSTANCE].looker.com
-LOOKERSDK_CLIENT_ID=[CLIENT_ID]
-LOOKERSDK_CLIENT_SECRET=[CLIENT_SECRET]
+* Follow step `2. Setup environmental variables` from the `Local installation` steps to setup your `Backend-Node`'s `.env` file. You must setup a `.env` file in the `Backend-Node` directory. 
 
-# No protocol for this host. Do not include http/https in the LOOKERSDK_EMBED_HOST url
-LOOKERSDK_EMBED_HOST=[INSTANCE].looker.com
-LOOKERSDK_EMBED_SECRET=[EMBED_SECRET]
-```
+#### 1a. Setup Conversational Analytics (OPTIONAL)
 
-LOOKERSDK_CLIENT_ID and LOOKERSDK_CLIENT_SECRET values are API Keys that can be found, or created, from the Looker menu:  *Admin -> Users -> Edit Users.*  These are specific to an individual user.  Please see [link](https://connect.looker.com/library/document/users?version=22.0#users_page).
+* If you want to enable the Conversational Analytics powered chat example. Follow all of the steps of `2a. Setup Conversational Analytics` the `Local installation` steps. You must add the new environment variables to your backend `.env` file.
 
-LOOKERSDK_EMBED_SECRET is an instance-wide *Embed Secret* key that can be set from the Looker menu: *Admin -> Platform -> Embed*  
-Here you can find *Embed Secret* and *Reset Secret*  
-<b>NOTE:</b> "Reset Secret" will expire other SSO links or otherwise block access to all processes using the previous *Embed Secret.*  Please see [link](https://docs.looker.com/admin-options/platform/embed).  
+#### 2. Deploy the backend to Google AppEngine
 
+* In the .env file for `Backend-Node`, update `PBL_BACKEND_PORT` parameter to `8080`:
+
+  ```
+  PBL_BACKEND_PORT=8080
+  ```
+
+* Deploy the backend server to Google AppEngine. Call the following command in the `Backend-Node` directory:
+
+  ```
+  gcloud app deploy app.yaml 
+  ```
+  Note the target url.
+
+* When the deploy completes, note the target url. Test that your backend is up and running by pointing your browser to the URL: 
+
+  ```
+  YOUR_TARGET_URL/api/me
+  ```
+
+#### 3. Deploy the frontend to Google AppEngine
+
+* Follow steps 1 and 2 in the `Frontend`'s `README`'s `Local installation` section.
+
+* In the `.env` file for `Frontend`, update `API_HOST` to the target url from the step `2. Deploy the backend to Google AppEngine`, and update `PBL_CLIENT_PORT` to `80`:
+
+  ```
+  API_HOST=YOUR_TARGET_URL
+  PBL_CLIENT_PORT=80
+  ```
+
+* Before deploying the front-end server, you will need to first build it. Call the follow command in your local environment in your `Frontend` directory:
+
+  ```
+  yarn build
+  ```
+
+* Once the build is complete, deploy the front-end app and a dispatch route pointing to the API endpoint:
+
+  ```
+  gcloud app deploy client.yaml dispatch.yaml
+  ```
+
+You should now be able to access your app in your browser using the target url that is returned!
 
 ### Looker Authenticated User / Model Configuration  
 --- 
@@ -74,87 +224,6 @@ This file contains the configured user(s) and their attributes used with SSO emb
   - etc.   
 
 More info regarding these settings and attributes can be found [here.](https://docs.looker.com/reference/embedding/sso-embed)
-
-### Start the Server
----
-
-Dev mode:
-```
-yarn dev  
-```
-Production mode:
-``` 
-yarn start
-```
-
-## Google AppEngine Installation (optional)  
-  ---  
-  Google [AppEngine](https://cloud.google.com/appengine) offers a fully managed and highly scalable cloud based host for both the backend and frontend processes when moving beyound local testing.  Free credits are offered for new accounts and a number of free hours are offered to current customers. 
-
-### To get started: 
-
-* Install Google’s Cloud SDK including gcloud (the primary CLI used to manage Google Cloud resources [link](https://cloud.google.com/sdk/gcloud))
-
-
-* Initialize gcloud and choose / create a Google Cloud project ([link](https://cloud.google.com/sdk/docs/initializing))
-
-  ```
-	gcloud init
-  ```
-   
-    ---  
-    ### A Note re: Security  
-    Before deploying the code to AppEngine it is advised to consider the potential issues of publishing to a public endpoint.  Unless this involves a test instance of Looker with non-sensitive data, we will need to protect the endpoint from unauthorized use.   
-
-    One option is to configure the Firewall rules as to only allow access from your IP address. 
-    - To do this: 
-      * Make sure the project is selected in the AppEngine Dashboard.  
-      * Select **Firewall rules** from the left navigation menu.  
-      * Select the **default** rule, click **edit**, and select **Deny** for range * and then **Save**.
-      * The click **Create Rule** on the top navigation menu. 
-      * Enter 10 for **Priority**, select **Allow**, and enter your IP address in the IP Range box.  Click **Save**.  
-    ---  
-    <br>
-
-
-* In the .env file for `Backend-Node`, update `PBL_BACKEND_PORT` parameter:
-
-  ```
-  PBL_BACKEND_PORT=8080
-  ```
-
-* Deploy Backend server to AppEngine:
-
-  ```
-	gcloud app deploy app.yaml 
-  ```
-
-* Note the target url. When deploy completes, test by pointing browser to: 
-
-  ```
-	{target-url}/api/me
-  ```
-
-* Now we will need to return and modify the **client** .env file (../Frontend/.env) with the {target-url} created for the API from the previous step.
-
-
-  - Update: <b>API_HOST</b> to point to the target-url returned during the API Deploy above.
-
-  - Update: <b>PBL_CLIENT_PORT</b> to 80  
-
-* Before deploying the front-end client, you will need to first do a build:
-  ```
-  cd ../frontend
-  yarn build
-  ```
-
-* Once the build is complete, deploy the front-end app and a dispatch route pointing to the API endpoint:
-  ```
-  gcloud app deploy client.yaml dispatch.yaml
-  ```
-
-* You should now be able to access your app using the target url that is returned!
-  
 
 
 ## Additional resources: 

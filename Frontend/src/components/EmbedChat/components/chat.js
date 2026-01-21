@@ -1,5 +1,5 @@
-import React, { useEffect, useState, Fragment } from "react"
-import { Button, ButtonOutline, Space, SpaceVertical, FieldToggleSwitch } from "@looker/components"
+import { useEffect, useState, Fragment } from "react"
+import { ButtonOutline, Space, SpaceVertical, FieldToggleSwitch } from "@looker/components"
 import styled from "styled-components";
 import { ChatInput } from "./input"
 import { MessageList } from "./messagelist"
@@ -7,11 +7,12 @@ import { LoadingSpinner } from "./loadingSpinner"
 import { JSONParser } from '@streamparser/json';
 
 const COOKIE_NAME = "conversation-id"
-
 const FIELD_FILTER_MAP = {
   "state.state_name": "State 📍",
   "county.county_name": "County Name",
 }
+
+
 
 export const Chat = ({ currentFilters = {}, setFilters = ()=>{} }) => {
   // Messages to show in chat

@@ -6,7 +6,7 @@ This application is the backend / server component supporting the [reference imp
 
 This JavaScript application uses the [Looker API](https://docs.looker.com/reference/api-and-integration) to provide embed urls to the user-facing React [application](../Frontend).
 
-There is a [Node backend example](../Backend-Node) of this application as well.
+There is a [Node backend example](../Backend-Node) of this application as well. **You must use the [node]( ../Backend-Node#installation-local) server for the Conversational Analytics chat embedding example.** 
 
 ## About Embedding Looker
 ---

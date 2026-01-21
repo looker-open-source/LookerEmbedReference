@@ -1,10 +1,11 @@
-import React, { Fragment } from "react"
+import { Fragment } from "react"
 import {Box, Card, CardContent, Heading, Table, TableHead, TableBody, TableRow, TableHeaderCell, TableDataCell, Drawer, ButtonOutline, Paragraph, Space} from "@looker/components"
 import Markdown from 'react-markdown'
 
 const THINKING_FACE_EMOJI = String.fromCodePoint("0x1F914")
 const ROBOT_EMOJI = String.fromCodePoint("0x1F916")
 
+// Example way of displaying Conversational Analytics system messages using the Looker Components library. This is very loosely based on a Python example here: https://docs.cloud.google.com/gemini/docs/conversational-analytics-api/build-agent-sdk#define_helper_functions  
 export const Message = ({ message }) => {
   if ("userMessage" in message) {
     return <UserMessage userMessage={message.userMessage}/>

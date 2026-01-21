@@ -285,6 +285,11 @@ body {
   height: 95vh;
 }
 
+.embed-dashboard-chat {
+  width: 75%;
+  height: 100%;
+}
+
 .embed-dashboard {
   width: 100%;
   height: calc(100% - 30px);
@@ -409,7 +414,7 @@ body {
   color: white;
 }
 
-.embed-dashboard>iframe,
+.embed-dashboard>iframe, .embed-dashboard-chat>iframe,
 .embed-dashboard-download>iframe, .embed-dashboard-events > iframe, .embed-dashboard-layout-dashboard, .embed-dashboard-wfilters-dashboard > iframe, .explore-container > iframe, .look-container > iframe, .query-container > iframe, .dashboard-container-v2 > iframe, .query-container-v2 > iframe {
   width: 100%;
   height: 100%;
