@@ -89,7 +89,7 @@ router.post("/sso-url", catchAsync(async (req, res) => {
  * Get details of the current authenticated user
  */
 router.get("/me", catchAsync(async (req, res, next) => {
-  const me = await sdk.ok(sdk.me()).catch((e) => console.log(e));
+  const me = await sdk.ok(sdk.me());
   res.send(me);
 }));
 
@@ -97,9 +97,7 @@ router.get("/me", catchAsync(async (req, res, next) => {
  * Get a list of all looks the authenticated user can access
  */
 router.get("/looks", catchAsync(async (req, res, next) => {
-  const looks = await sdk
-    .ok(sdk.all_looks("id,title,embed_url,query_id"))
-    .catch((e) => console.log(e));
+  const looks = await sdk.ok(sdk.all_looks("id,title,embed_url,query_id"))
   res.send(looks);
 }));
 

@@ -32,7 +32,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/api', apiRouter);
-app.use((err, res) => {
+app.use((err, req, res, next) => {
   const status = err.statusCode || 500;
   const message = err.message || 'Internal Server Error';
   res.status(status).json({
