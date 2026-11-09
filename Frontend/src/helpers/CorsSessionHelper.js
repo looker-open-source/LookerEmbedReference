@@ -1,10 +1,10 @@
-// Copyright 2022 Google LLC
+// Copyright 2022-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     https://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,15 +14,13 @@
 
 /*
   This file contains several methods to help with authentication.
-  The SDK cannot call Looker unless it is initialized.  
+  The SDK cannot call Looker unless it is initialized.
   This file authenticates the SDK by getting an authorization token.
 */
 import { Looker40SDK } from "@looker/sdk";
 import { AuthToken, AuthSession, BrowserTransport, DefaultSettings } from "@looker/sdk-rtl";
 
-
 class PblSession extends AuthSession {
-
   // This is a placeholder for the fetchToken function. It is modified to make it useful later.
   fetchToken() {
     return fetch("");
@@ -32,7 +30,7 @@ class PblSession extends AuthSession {
   constructor(settings, transport) {
     super(settings, transport || new BrowserTransport(settings));
   }
-  
+
   // This function checks to see if the user is already authenticated
   isAuthenticated() {
     const token = this.activeToken;
@@ -44,10 +42,18 @@ class PblSession extends AuthSession {
   async getToken() {
     if (!this.isAuthenticated()) {
       const token = await this.fetchToken();
-      const res = await token.json()
+      if (!token.ok) {
+        throw new Error(`Failed to obtain embed user token (${token.status})`);
+      }
+      const res = await token.json();
       this.activeToken.setToken(res.user_token);
     }
     return this.activeToken;
+  }
+
+  async logout() {
+    this.activeToken.reset();
+    return true;
   }
 
   // This function authenticates a user, which involves getting a new token
@@ -59,31 +65,30 @@ class PblSession extends AuthSession {
       delete props.credentials;
       props.headers = {
         ...props.headers,
-        Authorization: `Bearer ${this.activeToken.access_token}`
+        Authorization: `Bearer ${this.activeToken.access_token}`,
       };
     }
     return props;
   }
 }
 
-// This class sets the fetchToken to use the 'real' address of the backend server.
 class PblSessionEmbed extends PblSession {
   fetchToken() {
-    return fetch(
-      // The token user is here set to be a Looker 'user1'
-      // In real applications, you would pass the actual, 
-      // logged in user to the backend instead.
-      // The backend would then handle assigning appropriate permissions to the user.
-      "/api/embed-user/token?id=user1"
-    );
+    return fetch("/api/embed-user/token", {
+      credentials: "same-origin",
+    });
   }
 }
 
 // This creates a new session with the 'real' address used above
 const session = new PblSessionEmbed({
   ...DefaultSettings,
-  base_url: process.env.LOOKER_API_HOST
+  base_url: process.env.LOOKER_API_HOST,
 });
+
+export const resetEmbedApiSession = () => {
+  session.activeToken.reset();
+};
 
 // This exports the SDK with the authenticated session
 export const sdk = new Looker40SDK(session);

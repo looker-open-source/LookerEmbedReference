@@ -1,10 +1,10 @@
-// Copyright 2022 Google LLC
+// Copyright 2022-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     https://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
  * It is used by the /auth endpoint
  */
 
+var crypto = require('crypto')
 var createHmac = require('create-hmac') 
 
 function stringify (params) {
@@ -62,7 +63,7 @@ function createNonce (len) {
   let text = ''
 
   for (let i = 0; i < len; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length))
+    text += possible.charAt(crypto.randomInt(0, possible.length))
   }
 
   return text
@@ -77,18 +78,18 @@ function createSignedUrl (
   const jsonTime = JSON.stringify(Math.floor((new Date()).getTime() / 1000))
   const jsonNonce = JSON.stringify(nonce || createNonce(16))
   const params = {
-    external_user_id: JSON.stringify(user.external_user_id),
-    first_name: JSON.stringify(user.first_name),
-    last_name: JSON.stringify(user.last_name),
+    external_user_id: JSON.stringify(user.external_user_id ?? ''),
+    first_name: JSON.stringify(user.first_name ?? ''),
+    last_name: JSON.stringify(user.last_name ?? ''),
     session_length: JSON.stringify(user.session_length),
     force_logout_login: JSON.stringify(user.force_logout_login),
     permissions: JSON.stringify(user.permissions),
     models: JSON.stringify(user.models),
-    group_ids: JSON.stringify(user.group_ids),
-    external_group_id: JSON.stringify(user.external_group_id),
-    user_attributes: JSON.stringify(user.user_attributes),
+    group_ids: user.group_ids != null ? JSON.stringify(user.group_ids) : undefined,
+    external_group_id: JSON.stringify(user.external_group_id ?? ''),
+    user_attributes: user.user_attributes != null ? JSON.stringify(user.user_attributes) : undefined,
     access_filters: JSON.stringify(user.access_filters || {}),
-    user_timezone: JSON.stringify(user.user_timezone),
+    user_timezone: user.user_timezone ? JSON.stringify(user.user_timezone) : undefined,
     nonce: jsonNonce,
     time: jsonTime
   }

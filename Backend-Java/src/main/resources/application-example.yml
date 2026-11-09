@@ -1,10 +1,10 @@
-# Copyright 2022 Google LLC
+# Copyright 2022-2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,8 +37,13 @@ LOOKERSDK_EMBED_HOST: <> .looker.com
 # Instructions to create an embed secret are here:  https://docs.looker.com/admin-options/platform/embed#embed_secret
 LOOKERSDK_EMBED_SECRET: <>
 
+# Session signing secret (minimum 32 characters; e.g., openssl rand -hex 32) and allowed frontend origin
+PBL_AUTH_SECRET: ${PBL_AUTH_SECRET:}
+PBL_FRONTEND_ORIGIN: ${PBL_FRONTEND_ORIGIN:https://localhost:3001}
+
 authenticatedUser:
     user1:
+        password: ${PBL_USER1_PASSWORD:}
         # The external user ID should be a unique value from your system
         external_user_id: 'user1'
         first_name: 'Pat'
