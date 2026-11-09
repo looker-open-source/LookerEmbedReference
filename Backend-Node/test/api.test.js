@@ -382,6 +382,75 @@ async function runTests() {
         assert.equal(lastStatus, 429);
       },
     ],
+    [
+      "defaults nullable SSO string fields to empty strings and falls back when session_length is empty or null",
+      async () => {
+        config.authenticatedUser.minimalUser = {
+          external_user_id: "minimalUser",
+          first_name: null,
+          last_name: null,
+          permissions: ["access_data"],
+          models: ["data_block_acs_bigquery"],
+          group_ids: null,
+          external_group_id: null,
+          user_attributes: { locale: "en_US" },
+          access_filters: {},
+          user_timezone: null,
+        };
+        try {
+          const minimalToken = createSessionToken(
+            "minimalUser",
+            TEST_AUTH_SECRET,
+            3600
+          );
+          const authHeaders = { Authorization: `Bearer ${minimalToken}` };
+
+          const authRes = await requestJson(
+            server,
+            "GET",
+            "/api/auth?src=%2Fembed%2Fdashboards%2F1",
+            { headers: authHeaders }
+          );
+          assert.equal(authRes.status, 200);
+          assert.match(authRes.body.url, /first_name=%22%22/);
+          assert.match(authRes.body.url, /last_name=%22%22/);
+          assert.match(authRes.body.url, /external_group_id=%22%22/);
+          assert.doesNotMatch(authRes.body.url, /%22null%22|=null(?:&|$)/);
+
+          for (const emptySessionLen of ["", null]) {
+            const ssoRes = await requestJson(server, "POST", "/api/sso-url", {
+              headers: authHeaders,
+              body: {
+                target_url: "/embed/dashboards/1",
+                session_length: emptySessionLen,
+              },
+            });
+            assert.equal(ssoRes.status, 200);
+            assert.match(ssoRes.body.url, /session_length=3600/);
+            assert.match(ssoRes.body.url, /first_name=%22%22/);
+            assert.match(ssoRes.body.url, /last_name=%22%22/);
+            assert.match(ssoRes.body.url, /external_group_id=%22%22/);
+            assert.doesNotMatch(ssoRes.body.url, /%22null%22|=null(?:&|$)/);
+          }
+
+          const nonNumericSessionLen = await requestJson(
+            server,
+            "POST",
+            "/api/sso-url",
+            {
+              headers: authHeaders,
+              body: {
+                target_url: "/embed/dashboards/1",
+                session_length: false,
+              },
+            }
+          );
+          assert.equal(nonNumericSessionLen.status, 400);
+        } finally {
+          delete config.authenticatedUser.minimalUser;
+        }
+      },
+    ],
   ];
 
   let passed = 0;

@@ -65,6 +65,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
             "authenticatedUser.user2.models=data_block_acs_bigquery",
             "authenticatedUser.user2.permissions=access_data,see_looks",
             "authenticatedUser.user2.user_attributes.locale=es_US",
+            "authenticatedUser.minimalUser.password=test-minimal-pass-1234",
+            "authenticatedUser.minimalUser.external_user_id=minimalUser",
+            "authenticatedUser.minimalUser.models=data_block_acs_bigquery",
+            "authenticatedUser.minimalUser.permissions=access_data",
             "authenticatedUser.placeholderUser.password={USER1-PASSWORD}",
             "authenticatedUser.placeholderUser.external_user_id=placeholderUser"
         })
@@ -216,5 +220,61 @@ class LookerApiServerTests {
                                 .param("id", "user1")
                                 .cookie(sessionCookie))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void defaultsNullSsoStringFieldsAndBlankSessionLength() throws Exception {
+        MvcResult loginResult =
+                mockMvc.perform(
+                                post("/api/login")
+                                        .header("Origin", "https://localhost:3001")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(
+                                                "{\"username\":\"minimalUser\",\"password\":\"test-minimal-pass-1234\"}"))
+                        .andExpect(status().isOk())
+                        .andReturn();
+
+        MockCookie sessionCookie =
+                (MockCookie) loginResult.getResponse().getCookie("pbl_session");
+        assertNotNull(sessionCookie);
+
+        mockMvc.perform(
+                        get("/api/auth")
+                                .param("src", "/embed/dashboards/1")
+                                .cookie(sessionCookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.url", containsString("external_user_id=%22minimalUser%22")))
+                .andExpect(jsonPath("$.url", containsString("first_name=%22%22")))
+                .andExpect(jsonPath("$.url", containsString("last_name=%22%22")))
+                .andExpect(jsonPath("$.url", containsString("external_group_id=%22%22")))
+                .andExpect(jsonPath("$.url", containsString("session_length=3600")))
+                .andExpect(jsonPath("$.url", not(containsString("%22null%22"))))
+                .andExpect(jsonPath("$.url", not(containsString("=null"))));
+
+        for (String payload :
+                new String[] {
+                    "{\"target_url\":\"/embed/dashboards/1\",\"session_length\":\"\"}",
+                    "{\"target_url\":\"/embed/dashboards/1\",\"session_length\":null}"
+                }) {
+            mockMvc.perform(
+                            post("/api/sso-url")
+                                    .cookie(sessionCookie)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(payload))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.url", containsString("session_length=3600")))
+                    .andExpect(jsonPath("$.url", containsString("first_name=%22%22")))
+                    .andExpect(jsonPath("$.url", containsString("last_name=%22%22")))
+                    .andExpect(jsonPath("$.url", containsString("external_group_id=%22%22")))
+                    .andExpect(jsonPath("$.url", not(containsString("%22null%22"))))
+                    .andExpect(jsonPath("$.url", not(containsString("=null"))));
+        }
+
+        mockMvc.perform(
+                        post("/api/sso-url")
+                                .cookie(sessionCookie)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"target_url\":\"/embed/dashboards/1\",\"session_length\":false}"))
+                .andExpect(status().isBadRequest());
     }
 }

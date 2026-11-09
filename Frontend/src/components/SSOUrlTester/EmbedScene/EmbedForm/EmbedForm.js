@@ -99,7 +99,11 @@ export const EmbedForm = ({
   const handleChange = (e) => {
     const { name, value } = e.target;
     const nextValue =
-      name === "session_length" && value !== "" ? Number(value) : value;
+      name === "session_length"
+        ? value !== ""
+          ? Number(value)
+          : undefined
+        : value;
     setAuthRequest({ ...authRequest, [name]: nextValue });
   };
 
@@ -173,7 +177,7 @@ export const EmbedForm = ({
         <FieldText
           label="Session Length"
           name="session_length"
-          value={authRequest.session_length}
+          value={authRequest.session_length ?? ""}
           onChange={handleChange}
           type="number"
           required

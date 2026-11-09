@@ -480,8 +480,15 @@ function buildBoundedSsoUserProfile(body, serverUser) {
 
   const maxSessionLength = Number(serverUser.session_length) || DEFAULT_TTL_SECONDS;
   let sessionLength = maxSessionLength;
-  if (body.session_length !== undefined) {
-    const parsedLen = Number(body.session_length);
+  if (
+    body.session_length !== undefined &&
+    body.session_length !== null &&
+    !(typeof body.session_length === "string" && body.session_length.trim() === "")
+  ) {
+    const parsedLen =
+      typeof body.session_length === "number" || typeof body.session_length === "string"
+        ? Number(body.session_length)
+        : NaN;
     if (!Number.isInteger(parsedLen) || parsedLen < 60 || parsedLen > maxSessionLength) {
       return {
         ok: false,
@@ -497,19 +504,19 @@ function buildBoundedSsoUserProfile(body, serverUser) {
     body.first_name.trim().length > 0 &&
     DISPLAY_NAME_PATTERN.test(body.first_name)
       ? body.first_name.trim()
-      : serverUser.first_name;
+      : serverUser.first_name ?? "";
   const lastName =
     typeof body.last_name === "string" &&
     body.last_name.trim().length > 0 &&
     DISPLAY_NAME_PATTERN.test(body.last_name)
       ? body.last_name.trim()
-      : serverUser.last_name;
+      : serverUser.last_name ?? "";
 
   return {
     ok: true,
     targetUrl: body.target_url,
     userProfile: {
-      external_user_id: serverUser.external_user_id,
+      external_user_id: serverUser.external_user_id ?? "",
       first_name: firstName,
       last_name: lastName,
       session_length: sessionLength,
@@ -517,14 +524,14 @@ function buildBoundedSsoUserProfile(body, serverUser) {
       permissions: boundedPermissions,
       models: boundedModels,
       group_ids: boundedGroupIds,
-      external_group_id: serverUser.external_group_id,
+      external_group_id: serverUser.external_group_id ?? "",
       user_attributes: serverUser.user_attributes
         ? { ...serverUser.user_attributes }
         : undefined,
       access_filters: serverUser.access_filters
         ? JSON.parse(JSON.stringify(serverUser.access_filters))
         : {},
-      user_timezone: serverUser.user_timezone,
+      user_timezone: serverUser.user_timezone || undefined,
     },
   };
 }

@@ -78,18 +78,18 @@ function createSignedUrl (
   const jsonTime = JSON.stringify(Math.floor((new Date()).getTime() / 1000))
   const jsonNonce = JSON.stringify(nonce || createNonce(16))
   const params = {
-    external_user_id: JSON.stringify(user.external_user_id),
-    first_name: JSON.stringify(user.first_name),
-    last_name: JSON.stringify(user.last_name),
+    external_user_id: JSON.stringify(user.external_user_id ?? ''),
+    first_name: JSON.stringify(user.first_name ?? ''),
+    last_name: JSON.stringify(user.last_name ?? ''),
     session_length: JSON.stringify(user.session_length),
     force_logout_login: JSON.stringify(user.force_logout_login),
     permissions: JSON.stringify(user.permissions),
     models: JSON.stringify(user.models),
-    group_ids: JSON.stringify(user.group_ids),
-    external_group_id: JSON.stringify(user.external_group_id),
-    user_attributes: JSON.stringify(user.user_attributes),
+    group_ids: user.group_ids != null ? JSON.stringify(user.group_ids) : undefined,
+    external_group_id: JSON.stringify(user.external_group_id ?? ''),
+    user_attributes: user.user_attributes != null ? JSON.stringify(user.user_attributes) : undefined,
     access_filters: JSON.stringify(user.access_filters || {}),
-    user_timezone: JSON.stringify(user.user_timezone),
+    user_timezone: user.user_timezone ? JSON.stringify(user.user_timezone) : undefined,
     nonce: jsonNonce,
     time: jsonTime
   }

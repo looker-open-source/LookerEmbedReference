@@ -657,25 +657,28 @@ public class LookerApiServer {
         SignedURLParams Params = new SignedURLParams();
         SSOSignatureParams SignatureParams = new SSOSignatureParams();
         Gson gson = new GsonBuilder().create();
+        List<String> safeModels = modelsList != null ? modelsList : Collections.emptyList();
+        List<String> safePermissions = permissions != null ? permissions : Collections.emptyList();
+        String safeLocale = locale != null ? locale : "en_US";
 
         Params.setNonce(createNonce(16));
-        Params.setExternal_user_id(externalUserId);
-        Params.setFirst_name(firstName);
-        Params.setLast_name(lastName);
+        Params.setExternal_user_id(externalUserId != null ? externalUserId : "");
+        Params.setFirst_name(firstName != null ? firstName : "");
+        Params.setLast_name(lastName != null ? lastName : "");
         Params.setSession_length(sessionLength);
         Params.setForce_logout_login(forceLogoutLogin);
-        Params.setExternal_group_id(externalGroupId);
+        Params.setExternal_group_id(externalGroupId != null ? externalGroupId : "");
         Params.setGroup_ids(groupIds);
-        Params.setModels(modelsList.isEmpty() ? "" : String.join(",", modelsList));
-        Params.setPermissions(permissions);
-        Params.setUser_timezone(userTimezone);
+        Params.setModels(safeModels.isEmpty() ? "" : String.join(",", safeModels));
+        Params.setPermissions(safePermissions);
+        Params.setUser_timezone(userTimezone != null ? userTimezone : "");
         Params.setTime(Instant.now().toEpochMilli() / 1000);
 
         final String encoded_url =
                 URLEncoder.encode(src, StandardCharsets.UTF_8).replace("+", "%20");
         final String embedPath = "/login/embed/" + encoded_url;
-        final String modelsJsonArray = formatJsonStringArray(modelsList, gson);
-        final String userAttributesJson = "{\"locale\":" + gson.toJson(locale) + "}";
+        final String modelsJsonArray = formatJsonStringArray(safeModels, gson);
+        final String userAttributesJson = "{\"locale\":" + gson.toJson(safeLocale) + "}";
 
         SignatureParams.setHost(host);
         SignatureParams.setEmbed_path(embedPath);
@@ -695,19 +698,22 @@ public class LookerApiServer {
         String groupids = Params.getGroup_ids() == null ? "[]" : gson.toJson(Params.getGroup_ids());
 
         final String encoded_param_list =
-                "nonce=" + uri_param_encode("\"" + Params.getNonce() + "\"") +
-                "&external_user_id=" + uri_param_encode("\"" + Params.getExternal_user_id() + "\"") +
-                "&first_name=" + uri_param_encode("\"" + Params.getFirst_name() + "\"") +
-                "&last_name=" + uri_param_encode("\"" + Params.getLast_name() + "\"") +
+                "nonce=" + uri_param_encode(gson.toJson(Params.getNonce())) +
+                "&external_user_id=" + uri_param_encode(gson.toJson(Params.getExternal_user_id())) +
+                "&first_name=" + uri_param_encode(gson.toJson(Params.getFirst_name())) +
+                "&last_name=" + uri_param_encode(gson.toJson(Params.getLast_name())) +
                 "&session_length=" + uri_param_encode(String.valueOf(Params.getSession_length())) +
                 "&group_ids=" + uri_param_encode(groupids) +
-                "&external_group_id=" + uri_param_encode("\"" + Params.getExternal_group_id() + "\"") +
+                "&external_group_id=" + uri_param_encode(gson.toJson(Params.getExternal_group_id())) +
                 "&models=" + uri_param_encode(modelsJsonArray) +
                 "&permissions=" + uri_param_encode(gson.toJson(Params.getPermissions())) +
                 "&user_attributes=" + uri_param_encode(userAttributesJson) +
                 "&time=" + uri_param_encode(String.valueOf(Params.getTime())) +
                 "&access_filters=" + uri_param_encode(Params.getAccess_filters()) +
                 "&force_logout_login=" + uri_param_encode(String.valueOf(Params.isForce_logout_login())) +
+                (Params.getUser_timezone().isEmpty()
+                        ? ""
+                        : "&user_timezone=" + uri_param_encode(gson.toJson(Params.getUser_timezone()))) +
                 "&signature=" + uri_param_encode(Params.getSignature());
 
         return "https://" + host + embedPath + "?" + encoded_param_list;

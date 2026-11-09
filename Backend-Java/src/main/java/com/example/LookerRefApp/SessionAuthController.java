@@ -465,12 +465,15 @@ public class SessionAuthController {
 
         int maxSessionLength = lookerApiServer.getConfiguredSessionLength(verifiedUser);
         int sessionLength = maxSessionLength;
-        if (body.containsKey("session_length")) {
+        if (body.containsKey("session_length")
+                && body.get("session_length") != null
+                && !(body.get("session_length") instanceof String
+                        && ((String) body.get("session_length")).trim().isEmpty())) {
             Object lenObj = body.get("session_length");
             int parsedLen;
             if (lenObj instanceof Number) {
                 double d = ((Number) lenObj).doubleValue();
-                if (d != Math.rint(d)) {
+                if (!Double.isFinite(d) || d != Math.rint(d)) {
                     throw new IllegalArgumentException("Invalid session_length");
                 }
                 parsedLen = ((Number) lenObj).intValue();
