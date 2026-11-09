@@ -1,3 +1,19 @@
+<!--
+Copyright 2022-2026 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
 <img src="https://looker.com/assets/img/images/logos/looker.svg" alt="Looker" width="200"/>
 
 # Embed Reference - Java Backend
@@ -30,14 +46,14 @@ There are two methods of running this application; locally or on [GCP AppEngine.
 
    - This is set with the Property File **application.yml** located in **./main/resources**.
      There is a sample file **application-example.yml** with instructions in the same location.
-     Instead of adding variables to the file, these variables may be set as environment variables.
+     Instead of adding variables to the file, these variables may be set as environment variables (including `PBL_AUTH_SECRET` with at least 32 characters and `PBL_USER1_PASSWORD` for signing in to the reference app).
 
 4. From the project directory (that contains the pom.xml file), set up a Maven Wrapper for the project.
    https://maven.apache.org/wrapper/
    - `mvn -N wrapper:wrapper`
 5. Run the project.
    - `./mvnw spring-boot:run `
-6. The server should be up and running locally! It can be tested by navigating to `localhost:3000/api/me` (or whichever server port is set as an environmental variable in application.yml).
+6. The server should be up and running locally! Note that `/api/*` endpoints require signing in via the frontend application (unauthenticated requests to `localhost:3000/api/me` return `401`).
 
 
 ## Google AppEngine Installation (optional)
@@ -121,11 +137,7 @@ Google [AppEngine](https://cloud.google.com/appengine) offers a fully managed an
   ./mvnw -DskipTests package appengine:deploy
   ```
 
-- Note the target url. When deploy completes, test by pointing browser to:
-
-  ```
-  {target-url}/api/me
-  ```
+- Note the target url. Unauthenticated requests to `{target-url}/api/me` return `401` until you sign in through the frontend application.
 
 - Now we will need to return and modify the **client** .env file with the {target-url} created for the API.
 
@@ -148,3 +160,6 @@ Google [AppEngine](https://cloud.google.com/appengine) offers a fully managed an
 
 [Looker API & Embedded Ref ](https://docs.looker.com/reference/api-embedding-intro)
 
+## License
+
+Apache 2.0; see [`LICENSE`](../LICENSE) for details.

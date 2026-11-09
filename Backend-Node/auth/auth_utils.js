@@ -1,10 +1,10 @@
-// Copyright 2022 Google LLC
+// Copyright 2022-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     https://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
  * It is used by the /auth endpoint
  */
 
+var crypto = require('crypto')
 var createHmac = require('create-hmac') 
 
 function stringify (params) {
@@ -62,7 +63,7 @@ function createNonce (len) {
   let text = ''
 
   for (let i = 0; i < len; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length))
+    text += possible.charAt(crypto.randomInt(0, possible.length))
   }
 
   return text
