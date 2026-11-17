@@ -2,9 +2,11 @@
   "name": "backend",
   "version": "0.0.0",
   "private": true,
+  "license": "Apache-2.0",
   "scripts": {
     "dev": "nodemon ./bin/www",
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "test": "node ./test/api.test.js"
   },
   "dependencies": {
     "@looker/sdk-node": "^21.0.9",

@@ -1,3 +1,19 @@
+<!--
+Copyright 2022-2026 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
 [<img src="https://looker.com/assets/img/images/logos/looker.svg" alt="Looker" width="200"/>](https://www.looker.com)
 
 # Embed Reference - Node Backend
@@ -52,6 +68,12 @@ LOOKERSDK_CLIENT_SECRET=[CLIENT_SECRET]
 # No protocol for this host. Do not include http/https in the LOOKERSDK_EMBED_HOST url
 LOOKERSDK_EMBED_HOST=[INSTANCE].looker.com
 LOOKERSDK_EMBED_SECRET=[EMBED_SECRET]
+
+# Server-side session signing secret (>= 32 chars; generate with `openssl rand -hex 32`) and demo user credentials
+PBL_AUTH_SECRET=
+PBL_USER1_PASSWORD=
+PBL_USER2_PASSWORD=
+PBL_FRONTEND_ORIGIN=https://localhost:3001
 ```
 
 LOOKERSDK_CLIENT_ID and LOOKERSDK_CLIENT_SECRET values are API Keys that can be found, or created, from the Looker menu:  *Admin -> Users -> Edit Users.*  These are specific to an individual user.  Please see [link](https://connect.looker.com/library/document/users?version=22.0#users_page).
@@ -129,11 +151,7 @@ yarn start
 	gcloud app deploy app.yaml 
   ```
 
-* Note the target url. When deploy completes, test by pointing browser to: 
-
-  ```
-	{target-url}/api/me
-  ```
+* Note the target url. Unauthenticated requests to `{target-url}/api/me` return `401` until you sign in through the frontend application.
 
 * Now we will need to return and modify the **client** .env file (../Frontend/.env) with the {target-url} created for the API from the previous step.
 
@@ -167,7 +185,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for details.
 
 ## License
 
-Apache 2.0; see [`LICENSE`](LICENSE) for details.
+Apache 2.0; see [`LICENSE`](../LICENSE) for details.
 
 ## Disclaimer
 
