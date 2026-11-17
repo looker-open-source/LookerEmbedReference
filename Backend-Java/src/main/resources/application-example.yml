@@ -61,6 +61,21 @@ authenticatedUser:
         models: 'data_block_acs_bigquery'
         user_attributes:
             locale: 'en_US'
+    user2:
+        password: ${PBL_USER2_PASSWORD:}
+        external_user_id: 'user2'
+        first_name: 'Jane'
+        last_name: 'Doe'
+        session_length: 3600
+        force_logout_login: true
+        external_group_id: 'group2'
+        group_ids:
+        # user2 has reduced permissions
+        permissions:
+            access_data, see_looks, see_user_dashboards, see_lookml_dashboards
+        models: 'data_block_acs_bigquery'
+        user_attributes:
+            locale: 'es_US'
 
 #       Here is more detail on the permissions list above.
 #        access_data is necessary for every embed user.

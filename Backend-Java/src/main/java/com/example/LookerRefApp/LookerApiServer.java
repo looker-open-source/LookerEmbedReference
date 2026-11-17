@@ -50,6 +50,7 @@ import java.util.regex.Pattern;
 public class LookerApiServer {
 
     static final String SESSION_COOKIE_NAME = "pbl_session";
+    private static final int MIN_TTL_SECONDS = 60;
     static final int DEFAULT_TTL_SECONDS = 3600;
     private static final int MAX_TTL_SECONDS = 86400;
     private static final int MIN_SECRET_LENGTH = 32;
@@ -320,15 +321,19 @@ public class LookerApiServer {
         return MessageDigest.isEqual(sha256(password), sha256(configuredPassword));
     }
 
+    static int clampSessionTtl(int ttlSeconds) {
+        if (ttlSeconds <= 0) {
+            return DEFAULT_TTL_SECONDS;
+        }
+        return Math.min(Math.max(ttlSeconds, MIN_TTL_SECONDS), MAX_TTL_SECONDS);
+    }
+
     String createSessionToken(String username, int ttlSeconds) {
         String secret = getAuthSecretOrThrow();
         if (username == null || !USER_ID_PATTERN.matcher(username).matches()) {
             throw new IllegalArgumentException("Invalid username");
         }
-        int boundedTtl =
-                Math.min(
-                        Math.max(ttlSeconds > 0 ? ttlSeconds : DEFAULT_TTL_SECONDS, 60),
-                        MAX_TTL_SECONDS);
+        int boundedTtl = clampSessionTtl(ttlSeconds);
         long issuedAt = Instant.now().getEpochSecond();
         long expiresAt = issuedAt + boundedTtl;
         String headerJson = "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
@@ -458,10 +463,7 @@ public class LookerApiServer {
     }
 
     String authenticateRequest(HttpHeaders headers) {
-        String secret = env != null ? env.getProperty("PBL_AUTH_SECRET") : null;
-        if (!isValidAuthSecret(secret)) {
-            throw new SecurityException("Authentication is not configured");
-        }
+        getAuthSecretOrThrow();
         String token = extractTokenFromHeaders(headers);
         String verifiedUser = verifySessionToken(token);
         if (verifiedUser == null) {
@@ -470,15 +472,30 @@ public class LookerApiServer {
         return verifiedUser;
     }
 
+    private static boolean hasDisallowedTargetChars(String value) {
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            if (c <= 0x1F || c == 0x7F || c == '\\' || c == '#') {
+                return true;
+            }
+            if (Character.isHighSurrogate(c)) {
+                if (i + 1 >= value.length() || !Character.isLowSurrogate(value.charAt(i + 1))) {
+                    return true;
+                }
+                i++;
+            } else if (Character.isLowSurrogate(c)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     static void validateEmbedTargetUrl(String src) {
         if (src == null || src.isEmpty() || src.length() > 4096) {
             throw new IllegalArgumentException("Invalid embed src path");
         }
-        for (int i = 0; i < src.length(); i++) {
-            char c = src.charAt(i);
-            if (c <= 0x1F || c == 0x7F || c == '\\' || c == '#') {
-                throw new IllegalArgumentException("Invalid embed src path");
-            }
+        if (hasDisallowedTargetChars(src)) {
+            throw new IllegalArgumentException("Invalid embed src path");
         }
         int queryIdx = src.indexOf('?');
         String pathPart = queryIdx >= 0 ? src.substring(0, queryIdx) : src;
@@ -496,10 +513,10 @@ public class LookerApiServer {
             if (!decodedPath.equals(redecoded)) {
                 throw new IllegalArgumentException("Invalid embed src path");
             }
-        } catch (UnsupportedEncodingException e) {
+        } catch (UnsupportedEncodingException | IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid embed src path");
         }
-        if (decodedPath.indexOf('\\') >= 0) {
+        if (hasDisallowedTargetChars(decodedPath)) {
             throw new IllegalArgumentException("Invalid embed src path");
         }
         String[] segments = decodedPath.split("/", -1);
@@ -531,13 +548,142 @@ public class LookerApiServer {
         return result;
     }
 
+    List<String> getConfiguredPermissions(String user) {
+        if (env == null || user == null) {
+            return Collections.emptyList();
+        }
+        String baseKey = "authenticatedUser." + user + ".permissions";
+        String raw = env.getProperty(baseKey);
+        if (raw != null && !raw.trim().isEmpty()) {
+            return parseConfiguredModels(raw);
+        }
+
+        List<String> indexed = new ArrayList<>();
+        for (int idx = 0; ; idx++) {
+            String elem = env.getProperty(baseKey + "[" + idx + "]");
+            if (elem == null) {
+                break;
+            }
+            String trimmed = elem.trim();
+            if (!trimmed.isEmpty()) {
+                indexed.add(trimmed);
+            }
+        }
+        if (!indexed.isEmpty()) {
+            return indexed;
+        }
+
+        List<?> rawList = env.getProperty(baseKey, List.class);
+        if (rawList != null) {
+            List<String> trimmedList = new ArrayList<>();
+            for (Object item : rawList) {
+                if (item != null) {
+                    String trimmed = item.toString().trim();
+                    if (!trimmed.isEmpty()) {
+                        trimmedList.add(trimmed);
+                    }
+                }
+            }
+            return trimmedList;
+        }
+
+        return Collections.emptyList();
+    }
+
+    ArrayList<Integer> getConfiguredGroupIds(String user) {
+        if (env == null || user == null) {
+            return null;
+        }
+        String baseKey = "authenticatedUser." + user + ".group_ids";
+        String raw = env.getProperty(baseKey);
+        if (raw != null && !raw.trim().isEmpty()) {
+            ArrayList<Integer> parsed = new ArrayList<>();
+            for (String part : raw.split(",")) {
+                String trimmed = part.trim();
+                if (!trimmed.isEmpty()) {
+                    try {
+                        parsed.add(Integer.valueOf(Integer.parseInt(trimmed)));
+                    } catch (NumberFormatException e) {
+                        throw new IllegalStateException("Invalid configured group_ids entry", e);
+                    }
+                }
+            }
+            return parsed;
+        }
+
+        ArrayList<Integer> indexed = new ArrayList<>();
+        boolean sawIndexed = false;
+        for (int idx = 0; ; idx++) {
+            String elem = env.getProperty(baseKey + "[" + idx + "]");
+            if (elem == null) {
+                break;
+            }
+            sawIndexed = true;
+            String trimmed = elem.trim();
+            if (!trimmed.isEmpty()) {
+                try {
+                    indexed.add(Integer.valueOf(Integer.parseInt(trimmed)));
+                } catch (NumberFormatException e) {
+                    throw new IllegalStateException("Invalid configured group_ids entry", e);
+                }
+            }
+        }
+        if (sawIndexed) {
+            return indexed;
+        }
+
+        List<?> rawList = env.getProperty(baseKey, List.class);
+        if (rawList != null) {
+            ArrayList<Integer> converted = new ArrayList<>();
+            for (Object item : rawList) {
+                if (item == null) {
+                    continue;
+                }
+                if (item instanceof Integer) {
+                    converted.add((Integer) item);
+                } else if (item instanceof Number) {
+                    double d = ((Number) item).doubleValue();
+                    long lv = ((Number) item).longValue();
+                    if (!Double.isFinite(d)
+                            || d != Math.rint(d)
+                            || d < Integer.MIN_VALUE
+                            || d > Integer.MAX_VALUE
+                            || lv < Integer.MIN_VALUE
+                            || lv > Integer.MAX_VALUE) {
+                        throw new IllegalStateException("Invalid configured group_ids entry");
+                    }
+                    converted.add((int) lv);
+                } else {
+                    String trimmed = item.toString().trim();
+                    if (!trimmed.isEmpty()) {
+                        try {
+                            converted.add(Integer.valueOf(Integer.parseInt(trimmed)));
+                        } catch (NumberFormatException e) {
+                            throw new IllegalStateException("Invalid configured group_ids entry", e);
+                        }
+                    }
+                }
+            }
+            return converted;
+        }
+
+        return null;
+    }
+
     int getConfiguredSessionLength(String user) {
         String raw = env.getProperty("authenticatedUser." + user + ".session_length");
         if (raw == null || raw.trim().isEmpty()) {
             return DEFAULT_TTL_SECONDS;
         }
         try {
-            return Integer.parseInt(raw.trim());
+            long parsed = Long.parseLong(raw.trim());
+            if (parsed <= 0) {
+                return DEFAULT_TTL_SECONDS;
+            }
+            if (parsed > MAX_TTL_SECONDS) {
+                return MAX_TTL_SECONDS;
+            }
+            return clampSessionTtl((int) parsed);
         } catch (NumberFormatException e) {
             return DEFAULT_TTL_SECONDS;
         }
@@ -721,13 +867,8 @@ public class LookerApiServer {
 
     private String createSignedUrl(String src, String user, String host, String secret)
             throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException {
-        @SuppressWarnings("unchecked")
-        List<String> permissions =
-                (List<String>) env.getProperty("authenticatedUser." + user + ".permissions", List.class);
-        @SuppressWarnings("unchecked")
-        List<Integer> rawGroupIds =
-                (List<Integer>) env.getProperty("authenticatedUser." + user + ".group_ids", List.class);
-        ArrayList<Integer> groupIds = rawGroupIds != null ? new ArrayList<>(rawGroupIds) : null;
+        List<String> permissions = getConfiguredPermissions(user);
+        ArrayList<Integer> groupIds = getConfiguredGroupIds(user);
 
         return buildSignedEmbedUrl(
                 src,
@@ -739,7 +880,7 @@ public class LookerApiServer {
                 env.getProperty("authenticatedUser." + user + ".external_group_id"),
                 groupIds,
                 parseConfiguredModels(env.getProperty("authenticatedUser." + user + ".models")),
-                permissions != null ? permissions : Collections.emptyList(),
+                permissions,
                 getConfiguredLocale(user),
                 env.getProperty("authenticatedUser." + user + ".user_timezone"),
                 host,

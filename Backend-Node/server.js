@@ -22,6 +22,7 @@ var indexRouter = require('./routes/index');
 var apiRouter = require('./routes/api');
 
 var app = express();
+app.set('trust proxy', process.env.PBL_TRUST_PROXY || 'loopback');
 
 var allowedOrigin = process.env.PBL_FRONTEND_ORIGIN || 'https://localhost:3001';
 
@@ -41,11 +42,21 @@ app.use('/', indexRouter);
 app.use('/api', apiRouter);
 
 app.use(function (err, _req, res, next) {
+  if (res.headersSent) {
+    return next(err);
+  }
   if (err && (err.type === 'entity.too.large' || err instanceof SyntaxError)) {
     res.setHeader('Content-Type', 'application/json');
     return res.status(err.status || 400).send({ error: 'Invalid request payload' });
   }
-  return next(err);
+  var status =
+    err && Number.isInteger(err.status || err.statusCode)
+      ? err.status || err.statusCode
+      : 500;
+  res.setHeader('Content-Type', 'application/json');
+  return res.status(status).send({
+    error: status >= 500 ? 'Internal server error' : err.message || 'Bad request',
+  });
 });
 
 module.exports = app;

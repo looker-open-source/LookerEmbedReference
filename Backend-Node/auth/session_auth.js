@@ -15,6 +15,7 @@
 const crypto = require("crypto");
 
 const SESSION_COOKIE_NAME = "pbl_session";
+const MIN_TTL_SECONDS = 60;
 const DEFAULT_TTL_SECONDS = 3600;
 const MAX_TTL_SECONDS = 86400;
 const MIN_SECRET_LENGTH = 32;
@@ -90,6 +91,14 @@ function signTokenInput(signingInput, secret) {
   return crypto.createHmac("sha256", secret).update(signingInput, "utf8").digest();
 }
 
+function clampSessionTtl(ttlSeconds) {
+  const numeric = Number(ttlSeconds);
+  if (!Number.isFinite(numeric) || numeric <= 0) {
+    return DEFAULT_TTL_SECONDS;
+  }
+  return Math.min(Math.max(Math.floor(numeric), MIN_TTL_SECONDS), MAX_TTL_SECONDS);
+}
+
 function createSessionToken(username, secret, ttlSeconds = DEFAULT_TTL_SECONDS, nowSec) {
   if (!isValidAuthSecret(secret)) {
     throw new Error("PBL_AUTH_SECRET must be a non-placeholder secret of at least 32 characters");
@@ -99,10 +108,7 @@ function createSessionToken(username, secret, ttlSeconds = DEFAULT_TTL_SECONDS, 
   }
   const issuedAt =
     typeof nowSec === "number" ? Math.floor(nowSec) : Math.floor(Date.now() / 1000);
-  const boundedTtl = Math.min(
-    Math.max(Number(ttlSeconds) || DEFAULT_TTL_SECONDS, 60),
-    MAX_TTL_SECONDS
-  );
+  const boundedTtl = clampSessionTtl(ttlSeconds);
   const headerB64 = base64UrlEncode(JSON.stringify({ alg: "HS256", typ: "JWT" }));
   const payloadB64 = base64UrlEncode(
     JSON.stringify({
@@ -322,12 +328,68 @@ function sendJson(res, statusCode, payload) {
   return res.status(statusCode).send(payload);
 }
 
+function isLoopbackAddress(addr) {
+  if (typeof addr !== "string") {
+    return false;
+  }
+  const normalized = addr.trim().toLowerCase();
+  return (
+    normalized === "127.0.0.1" ||
+    normalized === "::1" ||
+    normalized === "::ffff:127.0.0.1" ||
+    normalized === "0:0:0:0:0:0:0:1"
+  );
+}
+
+function extractClientIp(req) {
+  if (!req || typeof req !== "object") {
+    return null;
+  }
+  const remoteAddress =
+    req.socket && typeof req.socket.remoteAddress === "string"
+      ? req.socket.remoteAddress.trim()
+      : null;
+  const trustProxyEnv = process.env.PBL_TRUST_PROXY;
+  const trustForwarded =
+    trustProxyEnv === "true" ||
+    (trustProxyEnv !== "false" && isLoopbackAddress(remoteAddress));
+  if (trustForwarded) {
+    const headers = req.headers || {};
+    const xff = headers["x-forwarded-for"] || headers["X-Forwarded-For"];
+    if (typeof xff === "string" && xff.trim().length > 0) {
+      const firstHop = xff.split(",", 1)[0].trim();
+      if (firstHop) {
+        return firstHop;
+      }
+    }
+    if (typeof req.ip === "string" && req.ip.trim().length > 0) {
+      return req.ip.trim();
+    }
+  }
+  if (remoteAddress) {
+    return remoteAddress;
+  }
+  if (typeof req.ip === "string" && req.ip.trim().length > 0) {
+    return req.ip.trim();
+  }
+  return null;
+}
+
+function hasDisallowedTargetChars(value) {
+  // eslint-disable-next-line no-control-regex
+  return /[\u0000-\u001F\u007F\\#]/.test(value);
+}
+
 function isValidEmbedTargetUrl(targetUrl) {
   if (typeof targetUrl !== "string" || targetUrl.length === 0 || targetUrl.length > 4096) {
     return false;
   }
-  // eslint-disable-next-line no-control-regex
-  if (/[\u0000-\u001F\u007F\\#]/.test(targetUrl)) {
+  try {
+    encodeURIComponent(targetUrl);
+  } catch (_err) {
+    return false;
+  }
+  if (hasDisallowedTargetChars(targetUrl)) {
     return false;
   }
   const pathPart = targetUrl.split("?", 1)[0];
@@ -343,7 +405,7 @@ function isValidEmbedTargetUrl(targetUrl) {
   } catch (_err) {
     return false;
   }
-  if (decodedPath.includes("\\")) {
+  if (hasDisallowedTargetChars(decodedPath)) {
     return false;
   }
   const segments = decodedPath.split("/");
@@ -385,6 +447,28 @@ function plainObjectsEqual(a, b) {
     JSON.stringify(canonicalizeJsonValue(a)) ===
     JSON.stringify(canonicalizeJsonValue(b))
   );
+}
+
+function normalizeServerSsoUserProfile(serverUser) {
+  const safeUser = isPlainObject(serverUser) ? serverUser : {};
+  return {
+    external_user_id: safeUser.external_user_id ?? "",
+    first_name: safeUser.first_name ?? "",
+    last_name: safeUser.last_name ?? "",
+    session_length: clampSessionTtl(safeUser.session_length),
+    force_logout_login: Boolean(safeUser.force_logout_login ?? true),
+    permissions: Array.isArray(safeUser.permissions) ? [...safeUser.permissions] : [],
+    models: Array.isArray(safeUser.models) ? [...safeUser.models] : [],
+    group_ids: Array.isArray(safeUser.group_ids) ? [...safeUser.group_ids] : undefined,
+    external_group_id: safeUser.external_group_id ?? "",
+    user_attributes: safeUser.user_attributes
+      ? { ...safeUser.user_attributes }
+      : undefined,
+    access_filters: safeUser.access_filters
+      ? JSON.parse(JSON.stringify(safeUser.access_filters))
+      : {},
+    user_timezone: safeUser.user_timezone || undefined,
+  };
 }
 
 function buildBoundedSsoUserProfile(body, serverUser) {
@@ -439,6 +523,9 @@ function buildBoundedSsoUserProfile(body, serverUser) {
       return { ok: false, status: 400, error: "group_ids must be an array" };
     }
     for (const gid of body.group_ids) {
+      if (!Number.isInteger(gid) || gid < -2147483648 || gid > 2147483647) {
+        return { ok: false, status: 400, error: "group_ids must contain integers" };
+      }
       if (!allowedServerGroupIds.includes(gid)) {
         return { ok: false, status: 403, error: "Requested group_ids not permitted" };
       }
@@ -478,7 +565,7 @@ function buildBoundedSsoUserProfile(body, serverUser) {
     boundedModels = allowedServerModels.filter((model) => body.models.includes(model));
   }
 
-  const maxSessionLength = Number(serverUser.session_length) || DEFAULT_TTL_SECONDS;
+  const maxSessionLength = clampSessionTtl(serverUser.session_length);
   let sessionLength = maxSessionLength;
   if (
     body.session_length !== undefined &&
@@ -536,18 +623,43 @@ function buildBoundedSsoUserProfile(body, serverUser) {
   };
 }
 
-function createLoginRateLimiter({ windowMs = 60000, maxAttempts = 10 } = {}) {
+function normalizeRateLimitUsername(username) {
+  if (typeof username !== "string") {
+    return null;
+  }
+  const trimmed = username.trim();
+  if (trimmed.length === 0) {
+    return null;
+  }
+  return trimmed.slice(0, 64);
+}
+
+function createLoginRateLimiter({ windowMs = 60000, maxAttempts = 10, maxIpAttempts } = {}) {
   const attempts = new Map();
   const maxEntries = 4096;
+  const effectiveMaxIpAttempts =
+    typeof maxIpAttempts === "number" && maxIpAttempts > 0
+      ? maxIpAttempts
+      : Math.max(maxAttempts * 3, maxAttempts);
 
-  function isBucketLimited(bucketKey, now) {
+  function resolveNow(maybeNowOrLegacy, maybeNow) {
+    if (typeof maybeNowOrLegacy === "number") {
+      return maybeNowOrLegacy;
+    }
+    if (typeof maybeNow === "number") {
+      return maybeNow;
+    }
+    return Date.now();
+  }
+
+  function isBucketLimited(bucketKey, limit, now) {
     const entry = attempts.get(bucketKey);
     if (!entry) return false;
     if (now >= entry.resetAt) {
       attempts.delete(bucketKey);
       return false;
     }
-    return entry.count >= maxAttempts;
+    return entry.count >= limit;
   }
 
   function incrementBucket(bucketKey, now) {
@@ -568,21 +680,34 @@ function createLoginRateLimiter({ windowMs = 60000, maxAttempts = 10 } = {}) {
   }
 
   return {
-    isRateLimited(ipKey, username, configuredUsers, now = Date.now()) {
-      if (ipKey && isBucketLimited(`ip:${ipKey}`, now)) {
+    isRateLimited(ipKey, username, maybeNowOrLegacy, maybeNow) {
+      const now = resolveNow(maybeNowOrLegacy, maybeNow);
+      if (ipKey && isBucketLimited(`ip:${ipKey}`, effectiveMaxIpAttempts, now)) {
         return true;
       }
-      if (isConfiguredUser(username, configuredUsers) && isBucketLimited(`user:${username}`, now)) {
+      const normalizedUser = normalizeRateLimitUsername(username);
+      if (
+        normalizedUser &&
+        isBucketLimited(`acct:${ipKey || "unknown"}:${normalizedUser}`, maxAttempts, now)
+      ) {
         return true;
       }
       return false;
     },
-    recordFailure(ipKey, username, configuredUsers, now = Date.now()) {
+    recordFailure(ipKey, username, maybeNowOrLegacy, maybeNow) {
+      const now = resolveNow(maybeNowOrLegacy, maybeNow);
       if (ipKey) {
         incrementBucket(`ip:${ipKey}`, now);
       }
-      if (isConfiguredUser(username, configuredUsers)) {
-        incrementBucket(`user:${username}`, now);
+      const normalizedUser = normalizeRateLimitUsername(username);
+      if (normalizedUser) {
+        incrementBucket(`acct:${ipKey || "unknown"}:${normalizedUser}`, now);
+      }
+    },
+    resetSuccess(ipKey, username) {
+      const normalizedUser = normalizeRateLimitUsername(username);
+      if (normalizedUser) {
+        attempts.delete(`acct:${ipKey || "unknown"}:${normalizedUser}`);
       }
     },
     resetIp(ipKey) {
@@ -620,6 +745,7 @@ function createRequireAuth(getConfig) {
 module.exports = {
   SESSION_COOKIE_NAME,
   DEFAULT_TTL_SECONDS,
+  clampSessionTtl,
   isPlaceholderValue,
   getAuthSecret,
   createSessionToken,
@@ -630,7 +756,9 @@ module.exports = {
   buildCookieString,
   isAllowedPostOrigin,
   sendJson,
+  extractClientIp,
   isValidEmbedTargetUrl,
+  normalizeServerSsoUserProfile,
   buildBoundedSsoUserProfile,
   createLoginRateLimiter,
   createRequireAuth,

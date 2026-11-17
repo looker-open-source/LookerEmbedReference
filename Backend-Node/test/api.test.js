@@ -31,10 +31,14 @@ config.userCredentials.user1 = TEST_USER1_PASSWORD;
 config.userCredentials.user2 = TEST_USER2_PASSWORD;
 
 const app = require("../server");
+const apiRouter = require("../routes/api");
+const createSignedUrl = require("../auth/auth_utils");
 const {
   createSessionToken,
   isPlaceholderValue,
   authenticateUserCredentials,
+  extractClientIp,
+  isValidEmbedTargetUrl,
 } = require("../auth/session_auth");
 
 function requestRaw(server, method, path, { headers = {}, rawBody, contentType } = {}) {
@@ -237,6 +241,10 @@ async function runTests() {
           "/embed/dashboards/%252e%252e/%252e%252e/admin",
           "/embed/dashboards/%255c..",
           "/embed/dashboards/1#fragment",
+          "/embed/dashboards/1%23frag",
+          "/embed/dashboards/1%0d%0ax",
+          "/embed/dashboards/1%0ax",
+          "/embed/dashboards/1%7fx",
           "/embed//dashboards/1",
         ]) {
           const res = await requestJson(
@@ -246,6 +254,23 @@ async function runTests() {
             { headers: authHeaders }
           );
           assert.equal(res.status, 400, `Expected 400 for src=${badSrc}`);
+        }
+
+        assert.equal(isValidEmbedTargetUrl("/embed/dashboards/1?x=\ud800"), false);
+        assert.equal(isValidEmbedTargetUrl("/embed/dashboards/1?x=\udc00"), false);
+
+        for (const rawSsoPayload of [
+          '{"target_url":"/embed/dashboards/1?x=\\ud800"}',
+          '{"target_url":"/embed/dashboards/1?x=\\udc00"}',
+          '{"target_url":"/embed/dashboards/1%0d%0ax"}',
+          '{"target_url":"/embed/dashboards/1%23frag"}',
+        ]) {
+          const badSsoRes = await requestRaw(server, "POST", "/api/sso-url", {
+            headers: authHeaders,
+            rawBody: rawSsoPayload,
+            contentType: "application/json",
+          });
+          assert.equal(badSsoRes.status, 400, `Expected 400 for payload=${rawSsoPayload}`);
         }
 
         const filteredExploreRes = await requestJson(
@@ -412,10 +437,25 @@ async function runTests() {
             { headers: authHeaders }
           );
           assert.equal(authRes.status, 200);
+          assert.match(authRes.body.url, /session_length=3600/);
+          assert.match(authRes.body.url, /force_logout_login=true/);
           assert.match(authRes.body.url, /first_name=%22%22/);
           assert.match(authRes.body.url, /last_name=%22%22/);
           assert.match(authRes.body.url, /external_group_id=%22%22/);
           assert.doesNotMatch(authRes.body.url, /%22null%22|=null(?:&|$)/);
+
+          const directSigned = createSignedUrl(
+            "/embed/dashboards/1",
+            {
+              external_user_id: "minimalUser",
+              permissions: ["access_data"],
+              models: ["data_block_acs_bigquery"],
+            },
+            "example.looker.com",
+            "embed-signing-secret-for-unit-tests"
+          );
+          assert.match(directSigned, /session_length=3600/);
+          assert.match(directSigned, /force_logout_login=true/);
 
           for (const emptySessionLen of ["", null]) {
             const ssoRes = await requestJson(server, "POST", "/api/sso-url", {
@@ -448,6 +488,246 @@ async function runTests() {
           assert.equal(nonNumericSessionLen.status, 400);
         } finally {
           delete config.authenticatedUser.minimalUser;
+        }
+      },
+    ],
+    [
+      "catches async route errors in withAuth and returns JSON 500 without crashing",
+      async () => {
+        config.authenticatedUser.throwingUser = {
+          external_user_id: "throwingUser",
+          get permissions() {
+            throw new Error("Simulated unexpected route failure");
+          },
+          models: ["data_block_acs_bigquery"],
+        };
+        try {
+          const token = createSessionToken("throwingUser", TEST_AUTH_SECRET, 3600);
+          const res = await requestJson(
+            server,
+            "GET",
+            "/api/auth?src=%2Fembed%2Fdashboards%2F1",
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          assert.equal(res.status, 500);
+          assert.match(String(res.headers["content-type"]), /^application\/json/i);
+          assert.equal(res.body.error, "Internal server error");
+
+          let fallbackStatus = 0;
+          let fallbackBody = null;
+          const twoArgWrapped = apiRouter.withAuth(async () => {
+            throw new Error("Two-arg invocation failure");
+          });
+          await twoArgWrapped(
+            { headers: { Authorization: `Bearer ${token}` } },
+            {
+              setHeader() {},
+              status(code) {
+                fallbackStatus = code;
+                return this;
+              },
+              send(payload) {
+                fallbackBody = payload;
+                return this;
+              },
+            }
+          );
+          assert.equal(fallbackStatus, 500);
+          assert.deepEqual(fallbackBody, { error: "Internal server error" });
+        } finally {
+          delete config.authenticatedUser.throwingUser;
+        }
+      },
+    ],
+    [
+      "validates 32-bit integer group_ids before checking group membership grants",
+      async () => {
+        config.authenticatedUser.groupUser = {
+          external_user_id: "groupUser",
+          first_name: "Group",
+          last_name: "Tester",
+          session_length: 3600,
+          force_logout_login: true,
+          external_group_id: "group_ext",
+          group_ids: [10, 20],
+          permissions: ["access_data"],
+          models: ["data_block_acs_bigquery"],
+        };
+        try {
+          const token = createSessionToken("groupUser", TEST_AUTH_SECRET, 3600);
+          const authHeaders = { Authorization: `Bearer ${token}` };
+
+          for (const invalidGroupIds of [[1.9], [5000000000], [-3000000000], ["10"]]) {
+            const badRes = await requestJson(server, "POST", "/api/sso-url", {
+              headers: authHeaders,
+              body: {
+                target_url: "/embed/dashboards/1",
+                group_ids: invalidGroupIds,
+              },
+            });
+            assert.equal(
+              badRes.status,
+              400,
+              `Expected 400 for group_ids=${JSON.stringify(invalidGroupIds)}`
+            );
+          }
+
+          const ungrantedRes = await requestJson(server, "POST", "/api/sso-url", {
+            headers: authHeaders,
+            body: {
+              target_url: "/embed/dashboards/1",
+              group_ids: [99],
+            },
+          });
+          assert.equal(ungrantedRes.status, 403);
+
+          const grantedSubsetRes = await requestJson(server, "POST", "/api/sso-url", {
+            headers: authHeaders,
+            body: {
+              target_url: "/embed/dashboards/1",
+              group_ids: [10],
+            },
+          });
+          assert.equal(grantedSubsetRes.status, 200);
+          assert.match(grantedSubsetRes.body.url, /group_ids=%5B10%5D/);
+        } finally {
+          delete config.authenticatedUser.groupUser;
+        }
+      },
+    ],
+    [
+      "isolates login rate limits by (ip, username), resets on success, and ignores untrusted X-Forwarded-For",
+      async () => {
+        for (let i = 1; i <= 15; i += 1) {
+          const rotRes = await requestJson(server, "POST", "/api/login", {
+            headers: { "X-Forwarded-For": `198.51.100.${i}` },
+            body: { username: "user1", password: "wrong-password" },
+          });
+          assert.equal(rotRes.status, 401);
+        }
+
+        const legitUser1Res = await requestJson(server, "POST", "/api/login", {
+          headers: { "X-Forwarded-For": "203.0.113.50" },
+          body: { username: "user1", password: TEST_USER1_PASSWORD },
+        });
+        assert.equal(legitUser1Res.status, 200);
+
+        for (let i = 1; i <= 10; i += 1) {
+          const unknownFail = await requestJson(server, "POST", "/api/login", {
+            headers: { "X-Forwarded-For": "198.51.100.200" },
+            body: { username: "unknown_candidate_user", password: "wrong-password" },
+          });
+          assert.equal(unknownFail.status, 401);
+        }
+        const unknownLimited = await requestJson(server, "POST", "/api/login", {
+          headers: { "X-Forwarded-For": "198.51.100.200" },
+          body: { username: "unknown_candidate_user", password: "wrong-password" },
+        });
+        assert.equal(unknownLimited.status, 429);
+
+        for (let i = 1; i <= 10; i += 1) {
+          const u1Fail = await requestJson(server, "POST", "/api/login", {
+            headers: { "X-Forwarded-For": "198.51.100.201" },
+            body: { username: "user1", password: "wrong-password" },
+          });
+          assert.equal(u1Fail.status, 401);
+        }
+        const u1Limited = await requestJson(server, "POST", "/api/login", {
+          headers: { "X-Forwarded-For": "198.51.100.201" },
+          body: { username: "user1", password: "wrong-password" },
+        });
+        assert.equal(u1Limited.status, 429);
+
+        const u2SameIpOk = await requestJson(server, "POST", "/api/login", {
+          headers: { "X-Forwarded-For": "198.51.100.201" },
+          body: { username: "user2", password: TEST_USER2_PASSWORD },
+        });
+        assert.equal(u2SameIpOk.status, 200);
+
+        for (let i = 1; i <= 5; i += 1) {
+          const preResetFail = await requestJson(server, "POST", "/api/login", {
+            headers: { "X-Forwarded-For": "198.51.100.202" },
+            body: { username: "user1", password: "wrong-password" },
+          });
+          assert.equal(preResetFail.status, 401);
+        }
+        const resetLogin = await requestJson(server, "POST", "/api/login", {
+          headers: { "X-Forwarded-For": "198.51.100.202" },
+          body: { username: "user1", password: TEST_USER1_PASSWORD },
+        });
+        assert.equal(resetLogin.status, 200);
+        for (let i = 1; i <= 6; i += 1) {
+          const postResetFail = await requestJson(server, "POST", "/api/login", {
+            headers: { "X-Forwarded-For": "198.51.100.202" },
+            body: { username: "user1", password: "wrong-password" },
+          });
+          assert.equal(postResetFail.status, 401);
+        }
+
+        assert.equal(
+          extractClientIp({
+            socket: { remoteAddress: "198.51.100.77" },
+            headers: { "x-forwarded-for": "203.0.113.9" },
+            ip: "198.51.100.77",
+          }),
+          "198.51.100.77"
+        );
+        assert.equal(
+          extractClientIp({
+            socket: { remoteAddress: "127.0.0.1" },
+            headers: { "x-forwarded-for": "203.0.113.9, 127.0.0.1" },
+            ip: "203.0.113.9",
+          }),
+          "203.0.113.9"
+        );
+      },
+    ],
+    [
+      "clamps out-of-range configured session_length consistently across JWT exp, Max-Age, and expires_in",
+      async () => {
+        config.userCredentials.ttlUser = "test-ttl-pass-2468";
+        try {
+          const scenarios = [
+            [-5, 3600, "203.0.113.91"],
+            [10, 60, "203.0.113.92"],
+            [999999, 86400, "203.0.113.93"],
+          ];
+          for (const [configuredLen, expectedTtl, clientIp] of scenarios) {
+            config.authenticatedUser.ttlUser = {
+              external_user_id: "ttlUser",
+              first_name: "Ttl",
+              last_name: "User",
+              session_length: configuredLen,
+              force_logout_login: true,
+              permissions: ["access_data"],
+              models: ["data_block_acs_bigquery"],
+            };
+            const loginRes = await requestJson(server, "POST", "/api/login", {
+              headers: { "X-Forwarded-For": clientIp },
+              body: { username: "ttlUser", password: "test-ttl-pass-2468" },
+            });
+            assert.equal(loginRes.status, 200);
+            assert.equal(loginRes.body.expires_in, expectedTtl);
+            assert.equal(loginRes.body.profile.session_length, expectedTtl);
+
+            const cookieHeader = loginRes.headers["set-cookie"][0];
+            assert.match(cookieHeader, new RegExp(`Max-Age=${expectedTtl}(?:;|$)`));
+
+            const rawToken = decodeURIComponent(
+              cookieHeader.split(";", 1)[0].slice("pbl_session=".length)
+            );
+            const payloadB64 = rawToken.split(".")[1];
+            const payloadJson = JSON.parse(
+              Buffer.from(
+                payloadB64.replace(/-/g, "+").replace(/_/g, "/"),
+                "base64"
+              ).toString("utf8")
+            );
+            assert.equal(payloadJson.exp - payloadJson.iat, expectedTtl);
+          }
+        } finally {
+          delete config.authenticatedUser.ttlUser;
+          delete config.userCredentials.ttlUser;
         }
       },
     ],

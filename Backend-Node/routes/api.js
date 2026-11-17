@@ -19,7 +19,7 @@ const { LookerNodeSDK } = require("@looker/sdk-node");
 
 var createSignedUrl = require("../auth/auth_utils");
 const {
-  DEFAULT_TTL_SECONDS,
+  clampSessionTtl,
   getAuthSecret,
   createSessionToken,
   verifySessionToken,
@@ -28,7 +28,9 @@ const {
   buildCookieString,
   isAllowedPostOrigin,
   sendJson,
+  extractClientIp,
   isValidEmbedTargetUrl,
+  normalizeServerSsoUserProfile,
   buildBoundedSsoUserProfile,
   createLoginRateLimiter,
   createRequireAuth,
@@ -71,7 +73,14 @@ function withAuth(handler) {
     if (!authorized) {
       return undefined;
     }
-    return handler(req, res, next);
+    try {
+      return await handler(req, res, next);
+    } catch (err) {
+      if (typeof next === "function") {
+        return next(err);
+      }
+      return sendJson(res, 500, { error: "Internal server error" });
+    }
   };
 }
 
@@ -83,7 +92,7 @@ function buildPublicSessionProfile(userProfile) {
     permissions: Array.isArray(userProfile.permissions)
       ? [...userProfile.permissions]
       : [],
-    session_length: Number(userProfile.session_length) || DEFAULT_TTL_SECONDS,
+    session_length: clampSessionTtl(userProfile.session_length),
   };
 }
 
@@ -100,15 +109,8 @@ router.post("/login", (req, res) => {
   }
 
   const body = req && req.body && typeof req.body === "object" ? req.body : {};
-  const ipKey =
-    (req && ((req.socket && req.socket.remoteAddress) || req.ip)) || null;
-  if (
-    loginRateLimiter.isRateLimited(
-      ipKey,
-      body.username,
-      config.authenticatedUser
-    )
-  ) {
+  const ipKey = extractClientIp(req);
+  if (loginRateLimiter.isRateLimited(ipKey, body.username)) {
     return sendJson(res, 429, {
       error: "Too many login attempts. Please try again later.",
     });
@@ -128,16 +130,12 @@ router.post("/login", (req, res) => {
     config.userCredentials
   );
   if (!userProfile) {
-    loginRateLimiter.recordFailure(
-      ipKey,
-      body.username,
-      config.authenticatedUser
-    );
+    loginRateLimiter.recordFailure(ipKey, body.username);
     return sendJson(res, 401, { error: "Invalid credentials" });
   }
 
-  loginRateLimiter.resetIp(ipKey);
-  const ttlSeconds = Number(userProfile.session_length) || DEFAULT_TTL_SECONDS;
+  loginRateLimiter.resetSuccess(ipKey, body.username);
+  const ttlSeconds = clampSessionTtl(userProfile.session_length);
   const token = createSessionToken(body.username, secret, ttlSeconds);
   res.setHeader("Set-Cookie", buildCookieString(token, ttlSeconds, req));
   return sendJson(res, 200, {
@@ -248,7 +246,12 @@ router.get(
     if (!host || !secret) {
       return sendJson(res, 500, { error: "Embed host or secret is not configured" });
     }
-    const url = createSignedUrl(src, req.authenticatedUser, host, secret);
+    const url = createSignedUrl(
+      src,
+      normalizeServerSsoUserProfile(req.authenticatedUser),
+      host,
+      secret
+    );
     return sendJson(res, 200, { url });
   })
 );
@@ -351,4 +354,5 @@ router.get(
   })
 );
 
+router.withAuth = withAuth;
 module.exports = router;

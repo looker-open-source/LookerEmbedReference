@@ -35,16 +35,20 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
@@ -55,6 +59,7 @@ public class SessionAuthController {
 
     private static final long RATE_LIMIT_WINDOW_MS = 60_000L;
     private static final int MAX_LOGIN_ATTEMPTS = 10;
+    private static final int MAX_IP_LOGIN_ATTEMPTS = 30;
     private static final int MAX_TRACKED_BUCKETS = 4096;
     private static final Pattern DISPLAY_NAME_PATTERN =
             Pattern.compile("^[\\p{L}\\p{N} .,'_-]{0,64}$");
@@ -92,7 +97,59 @@ public class SessionAuthController {
         };
     }
 
-    private boolean isBucketLimited(String bucketKey, long now) {
+    private static boolean isLoopbackAddress(String addr) {
+        if (addr == null) {
+            return false;
+        }
+        String normalized = addr.trim().toLowerCase(Locale.ROOT);
+        return "127.0.0.1".equals(normalized)
+                || "::1".equals(normalized)
+                || "0:0:0:0:0:0:0:1".equals(normalized)
+                || "::ffff:127.0.0.1".equals(normalized);
+    }
+
+    private String extractClientIp(HttpServletRequest request, HttpHeaders headers) {
+        String remoteAddr =
+                request != null && request.getRemoteAddr() != null
+                        ? request.getRemoteAddr().trim()
+                        : null;
+        Environment env = lookerApiServer.getEnvironment();
+        String trustProxy = env != null ? env.getProperty("PBL_TRUST_PROXY") : null;
+        boolean trustForwarded =
+                "true".equalsIgnoreCase(trustProxy)
+                        || (!"false".equalsIgnoreCase(trustProxy) && isLoopbackAddress(remoteAddr));
+        if (trustForwarded) {
+            String xff = LookerApiServer.getFirstHeaderValue(headers, "X-Forwarded-For");
+            if (xff != null && !xff.trim().isEmpty()) {
+                String firstHop = xff.split(",", 2)[0].trim();
+                if (!firstHop.isEmpty()) {
+                    return firstHop;
+                }
+            }
+        }
+        return remoteAddr != null && !remoteAddr.isEmpty() ? remoteAddr : null;
+    }
+
+    private static String normalizeRateLimitUsername(String username) {
+        if (username == null) {
+            return null;
+        }
+        String trimmed = username.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+        return trimmed.length() > 64 ? trimmed.substring(0, 64) : trimmed;
+    }
+
+    private static String buildAccountBucketKey(String clientIp, String normalizedUsername) {
+        if (normalizedUsername == null) {
+            return null;
+        }
+        String ipPart = (clientIp != null && !clientIp.isEmpty()) ? clientIp : "unknown";
+        return "acct:" + ipPart + ":" + normalizedUsername;
+    }
+
+    private boolean isBucketLimited(String bucketKey, int maxAttempts, long now) {
         if (bucketKey == null) {
             return false;
         }
@@ -105,7 +162,7 @@ public class SessionAuthController {
                 loginAttempts.remove(bucketKey, window);
                 return false;
             }
-            return window.count >= MAX_LOGIN_ATTEMPTS;
+            return window.count >= maxAttempts;
         }
     }
 
@@ -131,25 +188,33 @@ public class SessionAuthController {
         loginAttempts.put(bucketKey, new AttemptWindow(1, now + RATE_LIMIT_WINDOW_MS));
     }
 
-    private boolean isRateLimited(String remoteIp, String username) {
+    private boolean isRateLimited(String clientIp, String username) {
         long now = System.currentTimeMillis();
-        if (remoteIp != null && isBucketLimited("ip:" + remoteIp, now)) {
+        if (clientIp != null && isBucketLimited("ip:" + clientIp, MAX_IP_LOGIN_ATTEMPTS, now)) {
             return true;
         }
-        if (lookerApiServer.isConfiguredUser(username)
-                && isBucketLimited("user:" + username, now)) {
-            return true;
-        }
-        return false;
+        String normalizedUser = normalizeRateLimitUsername(username);
+        String acctKey = buildAccountBucketKey(clientIp, normalizedUser);
+        return acctKey != null && isBucketLimited(acctKey, MAX_LOGIN_ATTEMPTS, now);
     }
 
-    private void recordFailedAttempt(String remoteIp, String username) {
+    private void recordFailedAttempt(String clientIp, String username) {
         long now = System.currentTimeMillis();
-        if (remoteIp != null) {
-            incrementBucket("ip:" + remoteIp, now);
+        if (clientIp != null) {
+            incrementBucket("ip:" + clientIp, now);
         }
-        if (lookerApiServer.isConfiguredUser(username)) {
-            incrementBucket("user:" + username, now);
+        String normalizedUser = normalizeRateLimitUsername(username);
+        String acctKey = buildAccountBucketKey(clientIp, normalizedUser);
+        if (acctKey != null) {
+            incrementBucket(acctKey, now);
+        }
+    }
+
+    private void resetRateLimitOnSuccess(String clientIp, String username) {
+        String normalizedUser = normalizeRateLimitUsername(username);
+        String acctKey = buildAccountBucketKey(clientIp, normalizedUser);
+        if (acctKey != null) {
+            loginAttempts.remove(acctKey);
         }
     }
 
@@ -218,15 +283,13 @@ public class SessionAuthController {
         String lastName = env.getProperty(prefix + "last_name");
         List<String> models =
                 LookerApiServer.parseConfiguredModels(env.getProperty(prefix + "models"));
-        @SuppressWarnings("unchecked")
-        List<String> permissions =
-                (List<String>) env.getProperty(prefix + "permissions", List.class);
+        List<String> permissions = lookerApiServer.getConfiguredPermissions(username);
         int sessionLength = lookerApiServer.getConfiguredSessionLength(username);
 
         profile.put("first_name", firstName != null ? firstName : "");
         profile.put("last_name", lastName != null ? lastName : "");
         profile.put("models", models);
-        profile.put("permissions", permissions != null ? permissions : Collections.emptyList());
+        profile.put("permissions", permissions);
         profile.put("session_length", sessionLength);
         return profile;
     }
@@ -253,8 +316,8 @@ public class SessionAuthController {
                         ? (String) body.get("password")
                         : null;
 
-        String remoteIp = request != null ? request.getRemoteAddr() : null;
-        if (isRateLimited(remoteIp, username)) {
+        String clientIp = extractClientIp(request, headers);
+        if (isRateLimited(clientIp, username)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body(
                             Collections.singletonMap(
@@ -264,14 +327,12 @@ public class SessionAuthController {
         lookerApiServer.getAuthSecretOrThrow();
 
         if (!lookerApiServer.verifyUserPassword(username, password)) {
-            recordFailedAttempt(remoteIp, username);
+            recordFailedAttempt(clientIp, username);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Collections.singletonMap("error", "Invalid credentials"));
         }
 
-        if (remoteIp != null) {
-            loginAttempts.remove("ip:" + remoteIp);
-        }
+        resetRateLimitOnSuccess(clientIp, username);
         Map<String, Object> profile = buildPublicSessionProfile(username);
         int ttlSeconds = (Integer) profile.get("session_length");
         String token = lookerApiServer.createSessionToken(username, ttlSeconds);
@@ -312,6 +373,45 @@ public class SessionAuthController {
         responseBody.put("user", verifiedUser);
         responseBody.put("profile", buildPublicSessionProfile(verifiedUser));
         return ResponseEntity.ok(responseBody);
+    }
+
+    private static int parseExactInt32(Object item, String errorMessage) {
+        if (!(item instanceof Number)) {
+            throw new IllegalArgumentException(errorMessage);
+        }
+        if (item instanceof Integer || item instanceof Short || item instanceof Byte) {
+            return ((Number) item).intValue();
+        }
+        if (item instanceof Long) {
+            long lv = (Long) item;
+            if (lv < Integer.MIN_VALUE || lv > Integer.MAX_VALUE) {
+                throw new IllegalArgumentException(errorMessage);
+            }
+            return (int) lv;
+        }
+        if (item instanceof BigInteger) {
+            BigInteger bi = (BigInteger) item;
+            if (bi.compareTo(BigInteger.valueOf(Integer.MIN_VALUE)) < 0
+                    || bi.compareTo(BigInteger.valueOf(Integer.MAX_VALUE)) > 0) {
+                throw new IllegalArgumentException(errorMessage);
+            }
+            return bi.intValue();
+        }
+        if (item instanceof BigDecimal) {
+            try {
+                return ((BigDecimal) item).intValueExact();
+            } catch (ArithmeticException e) {
+                throw new IllegalArgumentException(errorMessage);
+            }
+        }
+        double d = ((Number) item).doubleValue();
+        if (!Double.isFinite(d)
+                || d != Math.rint(d)
+                || d < Integer.MIN_VALUE
+                || d > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException(errorMessage);
+        }
+        return (int) d;
     }
 
     @PostMapping(
@@ -382,9 +482,8 @@ public class SessionAuthController {
             }
         }
 
-        @SuppressWarnings("unchecked")
-        List<Integer> allowedGroupIdsRaw =
-                (List<Integer>) env.getProperty(prefix + "group_ids", List.class);
+        ArrayList<Integer> allowedGroupIdsRaw =
+                lookerApiServer.getConfiguredGroupIds(verifiedUser);
         List<Integer> allowedGroupIds =
                 allowedGroupIdsRaw != null ? allowedGroupIdsRaw : Collections.emptyList();
         ArrayList<Integer> boundedGroupIds =
@@ -395,32 +494,24 @@ public class SessionAuthController {
                 throw new IllegalArgumentException("group_ids must be an array");
             }
             List<?> reqGids = (List<?>) gidsObj;
-            ArrayList<Integer> filtered = new ArrayList<>();
+            Set<Integer> requestedSet = new LinkedHashSet<>();
             for (Object item : reqGids) {
-                if (!(item instanceof Number)) {
-                    throw new SecurityException("Forbidden");
-                }
-                int gid = ((Number) item).intValue();
+                int gid = parseExactInt32(item, "group_ids must contain 32-bit integers");
                 if (!allowedGroupIds.contains(gid)) {
                     throw new SecurityException("Forbidden");
                 }
+                requestedSet.add(gid);
             }
+            ArrayList<Integer> filtered = new ArrayList<>();
             for (Integer allowed : allowedGroupIds) {
-                for (Object item : reqGids) {
-                    if (((Number) item).intValue() == allowed) {
-                        filtered.add(allowed);
-                        break;
-                    }
+                if (requestedSet.contains(allowed)) {
+                    filtered.add(allowed);
                 }
             }
             boundedGroupIds = filtered;
         }
 
-        @SuppressWarnings("unchecked")
-        List<String> allowedPermsRaw =
-                (List<String>) env.getProperty(prefix + "permissions", List.class);
-        List<String> allowedPerms =
-                allowedPermsRaw != null ? allowedPermsRaw : Collections.emptyList();
+        List<String> allowedPerms = lookerApiServer.getConfiguredPermissions(verifiedUser);
         List<String> boundedPerms = new ArrayList<>(allowedPerms);
         if (body.containsKey("permissions")) {
             Object permsObj = body.get("permissions");
@@ -472,11 +563,7 @@ public class SessionAuthController {
             Object lenObj = body.get("session_length");
             int parsedLen;
             if (lenObj instanceof Number) {
-                double d = ((Number) lenObj).doubleValue();
-                if (!Double.isFinite(d) || d != Math.rint(d)) {
-                    throw new IllegalArgumentException("Invalid session_length");
-                }
-                parsedLen = ((Number) lenObj).intValue();
+                parsedLen = parseExactInt32(lenObj, "Invalid session_length");
             } else if (lenObj instanceof String) {
                 try {
                     parsedLen = Integer.parseInt(((String) lenObj).trim());
