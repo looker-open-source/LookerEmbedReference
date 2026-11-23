@@ -1,10 +1,10 @@
-// Copyright 2022 Google LLC
+// Copyright 2022-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     https://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,9 +19,14 @@ var config = require('./monorepo')
 require('dotenv').config()
 
 /*
-The following is two hard coded users with different permissions, which is intended to simulate how you would use identifying information
-from the headers sent in EmbedSDK.init() to lookup a specific user from your database and grant their permissions / user attributes
+The following is two hard coded users with different permissions, which is intended to simulate how you would look up
+an authenticated user's profile from your database after verifying their session credentials on the backend.
 */
+config.userCredentials = {
+  user1: process.env.PBL_USER1_PASSWORD || "",
+  user2: process.env.PBL_USER2_PASSWORD || "",
+}
+
 config.authenticatedUser = 
 { 
   user1: {
